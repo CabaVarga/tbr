@@ -3,7 +3,8 @@
   "name": "tbr – Tab Budget Reminder",
   "version": "1.0.0",
   "description": "Keep your open tabs under control with escalating visual warnings.",
-  "permissions": ["tabs"],
+  "permissions": ["tabs", "storage", "scripting"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },
