@@ -40,11 +40,31 @@ It does not package repository-only files such as `.git/`, `.claude/`, `.codex`,
 - Run `./scripts/release.sh` or `./scripts/release.sh patch` from the repo root.
 - Load the repo as an unpacked extension in Chrome and verify the release candidate before upload.
 - Prepare listing metadata: title, short description, full description, category, and support contact.
-- Prepare listing assets: at least one screenshot plus any required store graphics.
+- Prepare listing assets in `store-visuals/`.
 - Upload `dist/tbr-<version>.zip` in the Chrome Web Store Developer Dashboard.
 - Complete the Privacy tab accurately.
 - Set Distribution visibility and regions.
 - Submit for review.
+
+## Current Store Asset Requirements
+
+Based on the current Chrome Web Store docs:
+
+- The listing cannot be missing a description, icon, or screenshots.
+- Provide a `128x128` store icon.
+- Provide at least 1 screenshot, with up to 5 total.
+- Screenshot size should be `1280x800` or `640x400`.
+- Provide a required small promo tile at `440x280`.
+- Optionally provide a marquee promo image at `1400x560`.
+- Optional promo video can be added from YouTube.
+
+Suggested asset placeholders for this repo:
+
+- `store-visuals/screenshot-01-popup.png`
+- `store-visuals/screenshot-02-warning-window.png`
+- `store-visuals/screenshot-03-settings.png`
+- `store-visuals/promo-tile-small-440x280.png`
+- `store-visuals/promo-marquee-1400x560.png`
 
 ## Privacy And Permission Rationale
 
@@ -56,6 +76,8 @@ Use the current implementation when filling out the store privacy answers:
 - `<all_urls>`: required because the optional page border feature can target whichever active HTTP or HTTPS page the user is viewing.
 
 This extension does not have a remote backend. If that changes later, revisit the privacy answers before publishing updates.
+
+Inference from the current permissions and behavior: plan to provide a privacy policy in the store submission, because the extension handles tab-related user data and page access.
 
 ## Update Flow
 
