@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy for tbr – Tab Budget Reminder</title>
+    <meta
+      name="description"
+      content="Privacy policy for the tbr browser extension."
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f3eb;
+        --panel: #ffffff;
+        --text: #1f1b16;
+        --muted: #60584f;
+        --accent: #8b3a2b;
+        --line: #ddd4c8;
+      }
+
+      body {
+        margin: 0;
+        font: 16px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        color: var(--text);
+        background: linear-gradient(180deg, #f9f6f0 0%, var(--bg) 100%);
+      }
+
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(31, 27, 22, 0.06);
+      }
+
+      h1,
+      h2 {
+        line-height: 1.2;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: clamp(2rem, 4vw, 3rem);
+      }
+
+      h2 {
+        margin: 28px 0 10px;
+        font-size: 1.1rem;
+      }
+
+      p,
+      li {
+        margin: 0 0 12px;
+      }
+
+      .lede {
+        font-size: 1.05rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <article class="card">
+        <h1>Privacy Policy</h1>
+        <p class="lede">tbr – Tab Budget Reminder</p>
+        <p>Last updated: April 4, 2026</p>
+
+        <h2>What The Extension Can Access</h2>
+        <p>
+          tbr can read your open tabs so it can count them and react to tab
+          events such as opening, closing, activating, replacing, and updating
+          tabs. This access is limited to browser tab context and the current
+          page context needed for the warning features.
+        </p>
+        <p>
+          When the page-border warning is enabled, tbr can also inject and
+          remove CSS on the current HTTP or HTTPS page you are viewing using
+          the extension permissions declared in the manifest.
+        </p>
+
+        <h2>What Is Stored Locally</h2>
+        <p>
+          The extension stores your warning settings locally in the browser
+          using extension storage. This includes the thresholds and visual
+          options you choose in the popup.
+        </p>
+
+        <h2>How Data Is Used</h2>
+        <p>
+          All functionality happens locally in your browser. tbr does not use a
+          remote backend, and it does not send your tab data or settings to a
+          server.
+        </p>
+        <p>
+          Your data is not sold or shared with third parties.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+          If you have privacy questions, contact the publisher at
+          <a href="mailto:caba.varga@gmail.com">caba.varga@gmail.com</a>.
+        </p>
+      </article>
+    </main>
+  </body>
+</html>
