@@ -9,7 +9,8 @@ const COLOR_OK = "#6BCB77";
 const DEFAULT_SETTINGS = { badge: true, pageBorder: false, dynamicIcon: false };
 
 let settings = { ...DEFAULT_SETTINGS };
-let currentBorderColor = null;
+// Tracks which color is injected per tab: tabId -> color
+const tabBorderState = new Map();
 
 async function loadSettings() {
   const data = await chrome.storage.local.get("settings");
@@ -63,40 +64,46 @@ function borderCSS(color) {
     }`;
 }
 
-async function injectableTabs() {
-  const tabs = await chrome.tabs.query({});
-  return tabs.filter((t) => t.url && /^https?:\/\//.test(t.url));
+function isInjectable(url) {
+  return url && /^https?:\/\//.test(url);
 }
 
-async function updatePageBorder(color) {
-  const tabs = await injectableTabs();
+async function syncBorderForTab(tabId, color) {
   const targetColor = settings.pageBorder ? color : null;
+  const currentColor = tabBorderState.get(tabId) || null;
 
-  // Remove old border if color changed or feature disabled
-  if (currentBorderColor && currentBorderColor !== targetColor) {
-    const css = borderCSS(currentBorderColor);
-    for (const tab of tabs) {
-      try {
-        await chrome.scripting.removeCSS({ target: { tabId: tab.id }, css });
-      } catch {
-        // Tab may not be injectable (e.g. chrome:// pages)
-      }
+  if (currentColor === targetColor) return;
+
+  // Remove old border
+  if (currentColor) {
+    try {
+      await chrome.scripting.removeCSS({ target: { tabId }, css: borderCSS(currentColor) });
+    } catch {
+      // Tab may not be injectable
     }
   }
 
   // Inject new border
   if (targetColor) {
-    const css = borderCSS(targetColor);
-    for (const tab of tabs) {
-      try {
-        await chrome.scripting.insertCSS({ target: { tabId: tab.id }, css });
-      } catch {
-        // Tab may not be injectable
-      }
+    try {
+      await chrome.scripting.insertCSS({ target: { tabId }, css: borderCSS(targetColor) });
+    } catch {
+      // Tab may not be injectable
     }
   }
 
-  currentBorderColor = targetColor;
+  if (targetColor) {
+    tabBorderState.set(tabId, targetColor);
+  } else {
+    tabBorderState.delete(tabId);
+  }
+}
+
+async function syncBorderForActiveTab(color) {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tab && isInjectable(tab.url)) {
+    await syncBorderForTab(tab.id, color);
+  }
 }
 
 // --- Dynamic Icon ---
@@ -143,7 +150,7 @@ async function updateVisuals() {
   const color = getColor(count);
 
   await updateBadge(count, color);
-  await updatePageBorder(color);
+  await syncBorderForActiveTab(color);
   await updateIcon(color);
 }
 
@@ -190,11 +197,25 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   }
 });
 
-chrome.tabs.onRemoved.addListener(() => {
+chrome.tabs.onRemoved.addListener((tabId) => {
+  tabBorderState.delete(tabId);
   setTimeout(updateVisuals, 100);
 });
 
-chrome.tabs.onReplaced.addListener(updateVisuals);
+chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
+  tabBorderState.delete(removedTabId);
+  updateVisuals();
+});
+
+chrome.tabs.onActivated.addListener(() => {
+  updateVisuals();
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete" && tab.active && isInjectable(tab.url)) {
+    updateVisuals();
+  }
+});
 
 chrome.storage.onChanged.addListener(async (changes) => {
   if (changes.settings) {
