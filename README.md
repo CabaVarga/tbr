@@ -32,7 +32,7 @@ If you cross the danger threshold and open another tab, the extension opens a de
 
 ## Permissions
 
-tbr uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, save your settings, and optionally inject the warning border into the active page. There is no backend; the extension runs entirely in the browser.
+tbr uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, save your settings, and optionally inject the warning border into the active HTTP or HTTPS page. There is no backend; the extension runs entirely in the browser.
 
 ## Repo Context
 
