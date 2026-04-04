@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tbr - Tab Budget Reminder</title>
+    <meta
+      name="description"
+      content="tbr keeps tab overload visible early with escalating warnings, a dedicated warning window, and local-only settings."
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #090705;
+        --bg-2: #120f0c;
+        --panel: rgba(20, 16, 13, 0.88);
+        --panel-strong: #17120f;
+        --line: rgba(255, 217, 166, 0.16);
+        --text: #f5ede2;
+        --muted: #c5b5a4;
+        --soft: #8f7f6f;
+        --amber: #ffb347;
+        --amber-2: #ff8a1f;
+        --red: #d74a3a;
+        --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(255, 179, 71, 0.16), transparent 34%),
+          radial-gradient(circle at 85% 12%, rgba(215, 74, 58, 0.18), transparent 28%),
+          linear-gradient(180deg, #0e0b09 0%, var(--bg) 100%);
+        font: 16px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      a {
+        color: inherit;
+        text-decoration-color: rgba(255, 179, 71, 0.45);
+        text-underline-offset: 0.18em;
+      }
+
+      a:hover {
+        color: var(--amber);
+      }
+
+      .wrap {
+        width: min(1160px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 56px;
+      }
+
+      header,
+      main,
+      footer {
+        position: relative;
+        z-index: 1;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 32px;
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .brand-mark {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, var(--amber), var(--red));
+        box-shadow: 0 0 0 6px rgba(255, 179, 71, 0.08);
+      }
+
+      .toplinks {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: 1.08fr 0.92fr;
+        gap: 24px;
+        align-items: stretch;
+      }
+
+      .panel {
+        background: linear-gradient(180deg, rgba(28, 22, 18, 0.92), rgba(17, 13, 11, 0.92));
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .hero-copy {
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 28px;
+        min-height: 100%;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 179, 71, 0.22);
+        background: rgba(255, 179, 71, 0.06);
+        color: var(--amber);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 18px 0 14px;
+        font-size: clamp(3rem, 6vw, 5.8rem);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+        max-width: 9ch;
+      }
+
+      .lede {
+        margin: 0;
+        max-width: 40ch;
+        font-size: 1.08rem;
+        color: var(--muted);
+      }
+
+      .cta-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 179, 71, 0.22);
+        background: rgba(255, 179, 71, 0.08);
+        color: var(--text);
+        font-weight: 650;
+      }
+
+      .btn.primary {
+        background: linear-gradient(180deg, rgba(255, 179, 71, 0.24), rgba(215, 74, 58, 0.2));
+        border-color: rgba(255, 179, 71, 0.34);
+      }
+
+      .hero-note {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .note {
+        padding: 14px 14px 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      .note strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+      }
+
+      .note span {
+        color: var(--soft);
+        font-size: 0.92rem;
+      }
+
+      .visual {
+        padding: 18px;
+        display: grid;
+        gap: 14px;
+        background:
+          radial-gradient(circle at 40% 20%, rgba(255, 179, 71, 0.12), transparent 34%),
+          linear-gradient(180deg, rgba(26, 20, 16, 0.98), rgba(15, 11, 9, 0.98));
+      }
+
+      .anchor {
+        position: relative;
+        border-radius: 22px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 179, 71, 0.22);
+        background: #1a120e;
+        min-height: 0;
+      }
+
+      .anchor img,
+      .shot img,
+      .marquee img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .anchor .caption {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        max-width: 18ch;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(8, 6, 5, 0.82);
+        border: 1px solid rgba(255, 179, 71, 0.2);
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .shots {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .shot {
+        overflow: hidden;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .section {
+        margin-top: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      .section .panel {
+        padding: 24px;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 1.1rem;
+        letter-spacing: 0.02em;
+      }
+
+      .copy {
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .list {
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 12px;
+      }
+
+      .list li {
+        padding-top: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .list strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--text);
+      }
+
+      .permission {
+        display: grid;
+        gap: 14px;
+      }
+
+      .permission article {
+        padding: 14px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .permission code {
+        color: var(--amber);
+        font-size: 0.96em;
+      }
+
+      .marquee {
+        margin-top: 24px;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 179, 71, 0.2);
+      }
+
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+        padding: 22px 2px 0;
+        color: var(--soft);
+        font-size: 0.95rem;
+      }
+
+      .footer-links {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 920px) {
+        .hero,
+        .section {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          max-width: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .wrap {
+          width: min(100% - 20px, 1160px);
+          padding-top: 14px;
+        }
+
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .toplinks {
+          justify-content: flex-start;
+        }
+
+        .hero-copy,
+        .section .panel {
+          padding: 20px;
+        }
+
+        .hero-note,
+        .shots {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: clamp(2.6rem, 15vw, 4rem);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="topbar">
+        <div class="brand" aria-label="tbr Tab Budget Reminder">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>tbr</span>
+          <span>Tab Budget Reminder</span>
+        </div>
+        <nav class="toplinks" aria-label="Primary">
+          <a href="https://github.com/CabaVarga/tbr/issues">Support</a>
+          <a href="./privacy/">Privacy</a>
+          <a href="https://github.com/CabaVarga/tbr">Repository</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="panel hero-copy">
+            <div>
+              <div class="eyebrow">Escalating tab pressure</div>
+              <h1>You do not need another tab.</h1>
+              <p class="lede">
+                tbr keeps the count visible, pushes back at your thresholds, and
+                makes overload hard to ignore before the browser turns into a
+                pile.
+              </p>
+            </div>
+
+            <div>
+              <div class="cta-row">
+                <a class="btn primary" href="https://github.com/CabaVarga/tbr/issues">Get support</a>
+                <a class="btn" href="./privacy/">Read privacy policy</a>
+              </div>
+              <div class="hero-note" aria-label="Product summary">
+                <div class="note">
+                  <strong>Counts tabs live</strong>
+                  <span>See the total before the stack gets away from you.</span>
+                </div>
+                <div class="note">
+                  <strong>Warns in stages</strong>
+                  <span>Badge, border, icon, then the warning window.</span>
+                </div>
+                <div class="note">
+                  <strong>Stays local</strong>
+                  <span>Settings stay in your browser. No backend.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel visual">
+            <figure class="anchor">
+              <img
+                src="assets/store-visuals/screenshot-02-warning-window.png"
+                alt="Warning window shown when tab overload crosses the danger threshold"
+              />
+              <figcaption class="caption">The warning window is the point.</figcaption>
+            </figure>
+            <div class="shots" aria-label="Supporting screenshots">
+              <figure class="shot">
+                <img
+                  src="assets/store-visuals/screenshot-01-popup.png"
+                  alt="Extension popup showing the current tab count and warning settings"
+                />
+              </figure>
+              <figure class="shot">
+                <img
+                  src="assets/store-visuals/screenshot-03-settings.png"
+                  alt="Settings view for warning thresholds and visual alerts"
+                />
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <article class="panel">
+            <h2>What it does</h2>
+            <p class="copy">
+              tbr counts your open tabs, compares that count to your warning and
+              danger thresholds, and escalates the response as the number climbs.
+            </p>
+            <ul class="list">
+              <li>
+                <strong>Popup first</strong>
+                <span class="copy">Check the count and tune the thresholds from one place.</span>
+              </li>
+              <li>
+                <strong>Visible warnings</strong>
+                <span class="copy">Badge, page border, and icon changes make the pressure obvious.</span>
+              </li>
+              <li>
+                <strong>Dedicated interruption</strong>
+                <span class="copy">The warning window interrupts the habit once the danger line is crossed.</span>
+              </li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h2>Permission rationale</h2>
+            <div class="permission">
+              <article>
+                <strong><code>tabs</code></strong>
+                <p class="copy">Read the current tab count and react to tab create, close, activate, replace, and update events.</p>
+              </article>
+              <article>
+                <strong><code>storage</code></strong>
+                <p class="copy">Save warning thresholds and visual preferences locally in your browser.</p>
+              </article>
+              <article>
+                <strong><code>scripting</code></strong>
+                <p class="copy">Inject and remove the optional warning border on the active HTTP or HTTPS page.</p>
+              </article>
+              <article>
+                <strong><code>&lt;all_urls&gt;</code></strong>
+                <p class="copy">Allow the warning border to work on whichever page is active when it is enabled.</p>
+              </article>
+            </div>
+          </article>
+        </section>
+
+        <figure class="marquee panel" aria-label="Promo marquee">
+          <img
+            src="assets/store-visuals/promo-marquee-1400x560.png"
+            alt="Promotional banner for tbr showing the warning-first tab budget reminder concept"
+          />
+        </figure>
+      </main>
+
+      <footer class="footer">
+        <div>tbr is a local browser extension with a public support page and privacy policy.</div>
+        <div class="footer-links">
+          <a href="https://github.com/CabaVarga/tbr/issues">Support</a>
+          <a href="./privacy/">Privacy</a>
+          <a href="https://github.com/CabaVarga/tbr">GitHub</a>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>
