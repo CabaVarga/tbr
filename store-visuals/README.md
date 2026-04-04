@@ -32,7 +32,7 @@ Based on current Chrome Web Store documentation:
 - Screenshot size should be `1280x800` or `640x400`.
 - A small promo tile at `440x280` is required.
 - A marquee image at `1400x560` is optional.
-- A `128x128` store icon is required in the listing. The current repo icon is available at `icons/icon128.png`.
+- A `128x128` store icon is required in the listing. The current runtime icon is available at `src/icons/icon128.png`.
 
 ## Placeholder Checklist
 

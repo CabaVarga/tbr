@@ -4,11 +4,11 @@
 
 There is no build step for this extension.
 
-Before packaging, update the version in `manifest.json` if this is a new store release.
+Before packaging, update the version in `src/manifest.json` if this is a new store release.
 
-Create the upload zip from the repo root using only the extension files:
+Create the upload zip from the contents of `src/` using only the extension files:
 
-- `manifest.json`
+- `src/manifest.json`
 - `background.js`
 - `popup.html`
 - `popup.js`
@@ -21,7 +21,7 @@ Create the upload zip from the repo root using only the extension files:
 
 ## What Goes In The Upload Zip
 
-The upload archive should contain only the extension files required by the browser stores:
+The upload archive should contain only the extension files required by the browser stores at the archive root:
 
 - `manifest.json`
 - `background.js`
@@ -34,13 +34,13 @@ The upload archive should contain only the extension files required by the brows
 - `settings.js`
 - `icons/`
 
-It must not include repository-only files such as `.git/`, `.claude/`, `.codex`, `CLAUDE.md`, `docs/`, `scripts/`, `dist/`, or `store-visuals/`.
+It must not include a top-level `src/` folder, and it must not include repository-only files such as `.git/`, `.claude/`, `.codex`, `CLAUDE.md`, `docs/`, `scripts/`, `dist/`, or `store-visuals/`.
 
 ## Chrome Web Store Checklist
 
-- Update `manifest.json` with the release version if needed.
-- Create the upload zip from the repo root using only the extension files listed above.
-- Load the repo as an unpacked extension in Chrome and verify the release candidate before upload.
+- Update `src/manifest.json` with the release version if needed.
+- Create the upload zip from the contents of `src/` using only the extension files listed above.
+- Load `src/` as an unpacked extension in Chrome and verify the release candidate before upload.
 - Prepare listing metadata: title, short description, full description, category, and support contact.
 - Prepare listing assets in `store-visuals/`.
 - Upload the generated extension `.zip` in the Chrome Web Store Developer Dashboard.
@@ -83,8 +83,8 @@ Inference from the current permissions and behavior: plan to provide a privacy p
 
 ## Update Flow
 
-- Update the version in `manifest.json`.
-- Create a new upload zip from the extension files in the repo root.
+- Update the version in `src/manifest.json`.
+- Create a new upload zip from the contents of `src/`.
 - Upload the newly generated extension `.zip`.
 - Update listing text or privacy answers if functionality or permissions changed.
 - Submit the updated package for review.
