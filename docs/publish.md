@@ -34,7 +34,7 @@ The upload archive should contain only the extension files required by the brows
 - `settings.js`
 - `icons/`
 
-It must not include a top-level `src/` folder, and it must not include repository-only files such as `.git/`, `.claude/`, `.codex`, `CLAUDE.md`, `docs/`, `scripts/`, `dist/`, or `store-visuals/`.
+It must not include a top-level `src/` folder, and it must not include repository-only files such as `.git/`, `.claude/`, `.codex`, `CLAUDE.md`, `docs/`, `scripts/`, `dist/`, `release/`, or `store-visuals/`.
 
 ## Chrome Web Store Checklist
 

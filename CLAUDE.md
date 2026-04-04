@@ -23,14 +23,14 @@ src/manifest.json      MV3 manifest
 src/background.js      Service worker — core logic
   ├── Listens to tab events (onCreated, onRemoved, onReplaced)
   ├── Updates badge text (tab count) and badge color
-  └── Opens src/warning.html popup window at 20+ tabs
+  └── Opens warning.html popup window at 20+ tabs
 
 src/popup.html/js/css   Extension icon click — shows tab count + status
 src/warning.html/js/css Annoying popup window — "close tab" or "keep tab"
 src/icons/              Simple PNG icons (16, 48, 128)
 ```
 
-## Key Thresholds (defined in both src/background.js and src/popup.js)
+## Key Thresholds (default values from src/settings.js, used by src/background.js and src/popup.js)
 
 - **< 10 tabs**: Green/default — all clear
 - **10–19 tabs**: Orange badge — warning

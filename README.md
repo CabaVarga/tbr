@@ -65,7 +65,7 @@ When you are ready to submit a release, create a `.zip` from the contents of `sr
 
 The archive root should contain those files directly. Do not upload a zip with a top-level `src/` folder.
 
-Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, `release/`, or `store-visuals/`.
+Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, `dist/`, `release/`, or `store-visuals/`.
 
 More publishing details live in [docs/publish.md](docs/publish.md).
 
