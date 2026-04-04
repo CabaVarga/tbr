@@ -1,45 +1,34 @@
 # Store Visuals
 
-This folder is the placeholder location for Chrome Web Store screenshots and promotional graphics.
+Final Chrome Web Store listing assets for `tbr – Tab Budget Reminder`.
 
-## Planned Files
+## Delivered Files
 
-Required for launch:
+- `screenshot-01-popup.png` — popup danger state in a personal-distraction browsing context
+- `screenshot-02-warning-window.png` — warning window interrupting another tab opening
+- `screenshot-03-settings.png` — settings panel with thresholds and warning toggles
+- `screenshot-04-work-overload.png` — overload shown in a docs/issues/dashboard context
+- `promo-tile-small-440x280.png` — required small promo tile
+- `promo-marquee-1400x560.png` — optional Chrome Web Store marquee
 
-- `screenshot-01-popup.png`
-  Capture the extension popup with the live tab count visible.
-- `screenshot-02-warning-window.png`
-  Capture the intrusive warning window shown after opening a tab over the danger threshold.
-- `promo-tile-small-440x280.png`
-  Required Chrome Web Store small promo tile.
+## Source Files
 
-Recommended:
+The tracked source for these assets lives in `store-visuals/source/`.
 
-- `screenshot-03-settings.png`
-  Show the settings panel with thresholds and visual warning toggles.
-- `screenshot-04-page-border.png`
-  Show the page border warning on a real page.
-- `screenshot-05-danger-state.png`
-  Show the extension in the danger state with strong visual cues.
-- `promo-marquee-1400x560.png`
-  Optional marquee image for stronger store presentation.
+- `index.html` selects a scene via `?scene=...`
+- `styles.css` owns the shared visual system
+- `render.js` defines the scene content
 
-## Chrome Web Store Asset Notes
+## Regenerating
 
-Based on current Chrome Web Store documentation:
+1. Run `python3 -m http.server 4173 --directory store-visuals/source`
+2. Point `playwright-cli` at the available Chromium binary if needed
+3. Capture each scene at its final dimensions and overwrite the PNGs in this directory
 
-- At least 1 screenshot is required, and up to 5 are allowed.
-- Screenshot size should be `1280x800` or `640x400`.
-- A small promo tile at `440x280` is required.
-- A marquee image at `1400x560` is optional.
-- A `128x128` store icon is required in the listing. The current runtime icon is available at `src/icons/icon128.png`.
+This workspace used a local Playwright config at `/tmp/playwright-cli-config.json` that points to `/home/cabav/.cache/ms-playwright/chromium-1212/chrome-linux64/chrome`.
 
-## Placeholder Checklist
+## Size Targets
 
-- [ ] Add popup screenshot
-- [ ] Add warning window screenshot
-- [ ] Add settings screenshot
-- [ ] Add page border screenshot
-- [ ] Add danger state screenshot
-- [ ] Add small promo tile
-- [ ] Add optional marquee image
+- screenshots: `1280x800`
+- small promo tile: `440x280`
+- marquee: `1400x560`

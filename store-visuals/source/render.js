@@ -184,10 +184,7 @@ const SCENES = {
       body: "Visible pressure before the browser gets absurd.",
       lines: ["long", "medium", "short"]
     },
-    secondaryCard: {
-      title: "Signals",
-      bullets: ["Popup count", "Warning colors", "Danger interrupt"]
-    },
+    secondaryCard: null,
     device: {
       type: "popup",
       count: "27",
@@ -222,14 +219,7 @@ const SCENES = {
         "Badge color, icon tint, page border, and the warning window combine into a single tab-control tool with a sharp voice.",
       lines: ["long", "medium", "long", "short"]
     },
-    secondaryCard: {
-      title: "Built for people who keep saying",
-      bullets: [
-        "I'll read that later",
-        "I still need that tab",
-        "This browser is definitely under control"
-      ]
-    },
+    secondaryCard: null,
     device: {
       type: "popup",
       count: "27",
@@ -349,12 +339,14 @@ function renderScene(scene) {
     </div>
   `;
 
-  const rightCard = `
-    <div class="content-card">
-      <h3>${scene.secondaryCard.title}</h3>
-      ${renderBullets(scene.secondaryCard.bullets)}
-    </div>
-  `;
+  const rightCard = scene.secondaryCard
+    ? `
+      <div class="content-card">
+        <h3>${scene.secondaryCard.title}</h3>
+        ${renderBullets(scene.secondaryCard.bullets)}
+      </div>
+    `
+    : "";
 
   return `
     <section class="scene layout-${scene.layout}">

@@ -598,7 +598,7 @@ body {
 }
 
 .scene.layout-promo .page-grid {
-  grid-template-columns: 1fr 120px;
+  grid-template-columns: 1fr 104px;
   gap: 12px;
 }
 
@@ -626,7 +626,7 @@ body {
 }
 
 .scene.layout-promo .popup-device {
-  width: 120px;
+  width: 96px;
   border-radius: 14px;
 }
 
@@ -635,7 +635,7 @@ body {
 }
 
 .scene.layout-promo .popup-count {
-  font-size: 36px;
+  font-size: 30px;
 }
 
 .scene.layout-promo .popup-label,
