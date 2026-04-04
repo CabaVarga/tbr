@@ -1,21 +1,14 @@
+importScripts("settings.js");
+
 const COLOR_DEFAULT = "#6B7280";
 const COLOR_WARN = "#F59E0B";
 const COLOR_DANGER = "#EF4444";
 
-const DEFAULT_SETTINGS = {
-  badge: true,
-  pageBorder: false,
-  dynamicIcon: false,
-  warnAt: 10,
-  dangerAt: 20,
-};
-
 let settings = { ...DEFAULT_SETTINGS };
 const ALL_BORDER_COLORS = [COLOR_WARN, COLOR_DANGER];
 
-async function loadSettings() {
-  const data = await chrome.storage.local.get("settings");
-  settings = { ...DEFAULT_SETTINGS, ...data.settings };
+async function reloadSettings() {
+  settings = await loadSettings();
 }
 
 async function getTabCount() {
@@ -210,18 +203,18 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.storage.onChanged.addListener(async (changes) => {
   if (changes.settings) {
-    settings = { ...DEFAULT_SETTINGS, ...changes.settings.newValue };
+    await reloadSettings();
     await updateVisuals();
   }
 });
 
 // Initialize
 chrome.runtime.onInstalled.addListener(async () => {
-  await loadSettings();
+  await reloadSettings();
   await updateVisuals();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  await loadSettings();
+  await reloadSettings();
   await updateVisuals();
 });
