@@ -1,31 +1,37 @@
 # Store Visuals
 
-Final Chrome Web Store listing assets for `tbr – Tab Budget Reminder`.
+This folder contains the committed Chrome Web Store assets for `tbr`.
 
-## Delivered Files
+## Delivered Assets
 
-- `screenshot-01-popup.png` — popup danger state in a personal-distraction browsing context
-- `screenshot-02-warning-window.png` — warning window interrupting another tab opening
-- `screenshot-03-settings.png` — settings panel with thresholds and warning toggles
-- `screenshot-04-work-overload.png` — overload shown in a docs/issues/dashboard context
-- `promo-tile-small-440x280.png` — required small promo tile
-- `promo-marquee-1400x560.png` — optional Chrome Web Store marquee
+- `screenshot-01-popup.png`
+- `screenshot-02-warning-window.png`
+- `screenshot-03-settings.png`
+- `screenshot-04-work-overload.png`
+- `promo-tile-small-440x280.png`
+- `promo-marquee-1400x560.png`
 
-## Source Files
+## Source Renderer
 
-The tracked source for these assets lives in `store-visuals/source/`.
+The source renderer lives in:
 
-- `index.html` selects a scene via `?scene=...`
-- `styles.css` owns the shared visual system
-- `render.js` defines the scene content
+- `source/index.html`
+- `source/styles.css`
+- `source/render.js`
+
+## Narrative
+
+The visuals lead with personal distraction first, then escalate into a controlled, reviewer-safe, mildly accusatory tone. One scene covers a work-overload situation so the listing has a concrete second pressure point, not just casual browsing fatigue.
+
+## Public Site Copies
+
+Selected copies are published from `docs/assets/store-visuals/` so the static site stays self-contained.
 
 ## Regenerating
 
 1. Run `python3 -m http.server 4173 --directory store-visuals/source`
 2. Point `playwright-cli` at the available Chromium binary if needed
 3. Capture each scene at its final dimensions and overwrite the PNGs in this directory
-
-This workspace used a local Playwright config at `/tmp/playwright-cli-config.json` that points to `/home/cabav/.cache/ms-playwright/chromium-1212/chrome-linux64/chrome`.
 
 ## Size Targets
 
