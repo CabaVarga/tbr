@@ -11,8 +11,7 @@ const DEFAULT_SETTINGS = {
 };
 
 let settings = { ...DEFAULT_SETTINGS };
-// Tracks which color is injected per tab: tabId -> color
-const tabBorderState = new Map();
+const ALL_BORDER_COLORS = [COLOR_WARN, COLOR_DANGER];
 
 async function loadSettings() {
   const data = await chrome.storage.local.get("settings");
@@ -72,32 +71,23 @@ function isInjectable(url) {
 
 async function syncBorderForTab(tabId, color) {
   const targetColor = settings.pageBorder ? color : null;
-  const currentColor = tabBorderState.get(tabId) || null;
 
-  if (currentColor === targetColor) return;
-
-  // Remove old border
-  if (currentColor) {
+  // Always remove all possible borders first (idempotent — survives service worker restarts)
+  for (const c of ALL_BORDER_COLORS) {
     try {
-      await chrome.scripting.removeCSS({ target: { tabId }, css: borderCSS(currentColor) });
+      await chrome.scripting.removeCSS({ target: { tabId }, css: borderCSS(c) });
     } catch {
       // Tab may not be injectable
     }
   }
 
-  // Inject new border
+  // Inject the correct border if needed
   if (targetColor) {
     try {
       await chrome.scripting.insertCSS({ target: { tabId }, css: borderCSS(targetColor) });
     } catch {
       // Tab may not be injectable
     }
-  }
-
-  if (targetColor) {
-    tabBorderState.set(tabId, targetColor);
-  } else {
-    tabBorderState.delete(tabId);
   }
 }
 
@@ -199,13 +189,11 @@ chrome.tabs.onCreated.addListener(async (tab) => {
   }
 });
 
-chrome.tabs.onRemoved.addListener((tabId) => {
-  tabBorderState.delete(tabId);
+chrome.tabs.onRemoved.addListener(() => {
   setTimeout(updateVisuals, 100);
 });
 
-chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
-  tabBorderState.delete(removedTabId);
+chrome.tabs.onReplaced.addListener(() => {
   updateVisuals();
 });
 
