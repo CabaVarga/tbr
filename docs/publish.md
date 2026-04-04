@@ -8,7 +8,7 @@ Before packaging, update the version in `src/manifest.json` if this is a new sto
 
 Create the upload zip from the contents of `src/` using only the extension files:
 
-- `src/manifest.json`
+- `manifest.json`
 - `background.js`
 - `popup.html`
 - `popup.js`
