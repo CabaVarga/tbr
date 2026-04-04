@@ -10,25 +10,30 @@
     <div id="label">open tabs</div>
     <div id="message"></div>
   </div>
-  <hr>
-  <div id="settings">
-    <div class="setting">
-      <label>
-        <input type="checkbox" id="opt-badge">
-        <span>Badge color</span>
-      </label>
+  <div id="settings-toggle">Settings <span id="arrow">&#9662;</span></div>
+  <div id="settings" class="collapsed">
+    <div class="group">
+      <div class="group-title">Warnings</div>
+      <div class="setting">
+        <label><input type="checkbox" id="opt-badge"><span>Badge color</span></label>
+      </div>
+      <div class="setting">
+        <label><input type="checkbox" id="opt-pageBorder"><span>Page border</span></label>
+      </div>
+      <div class="setting">
+        <label><input type="checkbox" id="opt-dynamicIcon"><span>Icon color</span></label>
+      </div>
     </div>
-    <div class="setting">
-      <label>
-        <input type="checkbox" id="opt-pageBorder">
-        <span>Page border</span>
-      </label>
-    </div>
-    <div class="setting">
-      <label>
-        <input type="checkbox" id="opt-dynamicIcon">
-        <span>Icon color</span>
-      </label>
+    <div class="group">
+      <div class="group-title">Thresholds</div>
+      <div class="limit">
+        <label for="limit-warn">Warning at</label>
+        <input type="number" id="limit-warn" min="1" max="50">
+      </div>
+      <div class="limit">
+        <label for="limit-danger">Danger at</label>
+        <input type="number" id="limit-danger" min="2" max="100">
+      </div>
     </div>
   </div>
   <script src="popup.js"></script>

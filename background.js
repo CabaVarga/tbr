@@ -1,12 +1,14 @@
-const WARN_THRESHOLD = 10;
-const DANGER_THRESHOLD = 20;
-
 const COLOR_DEFAULT = "#6B7280";
 const COLOR_WARN = "#F59E0B";
 const COLOR_DANGER = "#EF4444";
-const COLOR_OK = "#6BCB77";
 
-const DEFAULT_SETTINGS = { badge: true, pageBorder: false, dynamicIcon: false };
+const DEFAULT_SETTINGS = {
+  badge: true,
+  pageBorder: false,
+  dynamicIcon: false,
+  warnAt: 10,
+  dangerAt: 20,
+};
 
 let settings = { ...DEFAULT_SETTINGS };
 // Tracks which color is injected per tab: tabId -> color
@@ -23,8 +25,8 @@ async function getTabCount() {
 }
 
 function getColor(count) {
-  if (count >= DANGER_THRESHOLD) return COLOR_DANGER;
-  if (count >= WARN_THRESHOLD) return COLOR_WARN;
+  if (count >= settings.dangerAt) return COLOR_DANGER;
+  if (count >= settings.warnAt) return COLOR_WARN;
   return null;
 }
 
@@ -192,7 +194,7 @@ chrome.windows.onRemoved.addListener((windowId) => {
 chrome.tabs.onCreated.addListener(async (tab) => {
   await updateVisuals();
   const count = await getTabCount();
-  if (count >= DANGER_THRESHOLD) {
+  if (count >= settings.dangerAt) {
     showWarning(tab.id);
   }
 });
