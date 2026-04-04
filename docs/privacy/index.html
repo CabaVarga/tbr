@@ -41,6 +41,14 @@
         box-shadow: 0 10px 30px rgba(31, 27, 22, 0.06);
       }
 
+      .back {
+        display: inline-block;
+        margin-bottom: 18px;
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
       h1,
       h2 {
         line-height: 1.2;
@@ -56,8 +64,7 @@
         font-size: 1.1rem;
       }
 
-      p,
-      li {
+      p {
         margin: 0 0 12px;
       }
 
@@ -70,21 +77,21 @@
   <body>
     <main>
       <article class="card">
+        <a class="back" href="../">Back to tbr</a>
         <h1>Privacy Policy</h1>
         <p class="lede">tbr – Tab Budget Reminder</p>
         <p>Last updated: April 4, 2026</p>
 
         <h2>What The Extension Can Access</h2>
         <p>
-          tbr can read your open tabs so it can count them and react to tab
+          tbr can read your open tabs so it can count them and respond to tab
           events such as opening, closing, activating, replacing, and updating
-          tabs. This access is limited to browser tab context and the current
-          page context needed for the warning features.
+          tabs.
         </p>
         <p>
           When the page-border warning is enabled, tbr can also inject and
-          remove CSS on the current HTTP or HTTPS page you are viewing using
-          the extension permissions declared in the manifest.
+          remove CSS on the current page using the browser permissions declared
+          in the manifest.
         </p>
 
         <h2>What Is Stored Locally</h2>
@@ -104,10 +111,12 @@
           Your data is not sold or shared with third parties.
         </p>
 
-        <h2>Contact</h2>
+        <h2>Support</h2>
         <p>
-          If you have privacy questions, contact the publisher at
-          <a href="mailto:caba.varga@gmail.com">caba.varga@gmail.com</a>.
+          Questions or issues can be reported on
+          <a href="https://github.com/CabaVarga/tbr/issues"
+            >GitHub Issues</a
+          >.
         </p>
       </article>
     </main>

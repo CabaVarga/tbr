@@ -1,15 +1,19 @@
 # tbr – Tab Budget Reminder
 
-`tbr` is a Chrome extension that pushes back against tab hoarding with escalating warnings.
+tbr is a Chrome extension that pushes back against tab hoarding with escalating warnings. It keeps the feedback local, blunt, and visible: you can see the current tab count, tune thresholds, and let the extension escalate from calm to warning to danger as your tab stack grows.
 
-It starts simple: you click the extension icon and see how many tabs you have open. As the count climbs, the extension can turn the badge orange or red, tint the icon, draw a warning border around the active page, and eventually interrupt you with a blunt popup asking whether you really need that new tab.
+Public links:
+
+- Landing page: https://cabavarga.github.io/tbr/
+- Privacy policy: https://cabavarga.github.io/tbr/privacy/
+- Support: https://github.com/CabaVarga/tbr/issues
 
 ## What It Does
 
 - Tracks how many tabs you currently have open.
 - Shows the live tab count in the extension popup.
-- Escalates from a warning state to a danger state based on configurable thresholds.
-- Can highlight tab overload with badge color, page border, and dynamic icon color.
+- Escalates from warning to danger based on configurable thresholds.
+- Can highlight overload with badge color, page border, and dynamic icon color.
 - Opens a warning popup when you create a new tab while already over the danger threshold.
 
 ## How You Use It
@@ -22,17 +26,20 @@ It starts simple: you click the extension icon and see how many tabs you have op
    - badge color
    - page border
    - icon color
-6. Keep browsing normally until the extension starts pushing back.
+6. Keep browsing until the extension starts pushing back.
 
 If you cross the danger threshold and open another tab, the extension opens a dedicated warning window. From there you can close the new tab or keep it.
 
-## Default Behavior
+## Permissions
 
-- Fewer than 10 tabs: calm state
-- 10 to 19 tabs: warning state
-- 20 or more tabs: danger state
+tbr uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, save your settings, and optionally inject the warning border into the active page. There is no backend; the extension runs entirely in the browser.
 
-These values can be changed in the popup settings.
+## Repo Context
+
+- `src/` is the unpacked extension root.
+- `docs/` is the public GitHub Pages site.
+- `store-visuals/` contains tracked store-submission assets and the source renderer.
+- `asset-generation-pipeline/` contains local-only notes for the asset pipeline.
 
 ## Local Development
 
@@ -48,9 +55,9 @@ To load the extension locally:
 
 ## Packaging For The Chrome Web Store
 
-There is no build step.
+Package the extension from the contents of `src/` with no top-level `src/` directory in the uploaded zip.
 
-When you are ready to submit a release, create a `.zip` from the contents of `src/`:
+The archive root should contain the extension files directly, such as:
 
 - `manifest.json`
 - `background.js`
@@ -63,31 +70,6 @@ When you are ready to submit a release, create a `.zip` from the contents of `sr
 - `settings.js`
 - `icons/`
 
-The archive root should contain those files directly. Do not upload a zip with a top-level `src/` folder.
-
 Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, `dist/`, `release/`, or `store-visuals/`.
 
 More publishing details live in [docs/publish.md](docs/publish.md).
-
-## Store Visual Placeholders
-
-Chrome Web Store visuals for this extension should live in [store-visuals/README.md](store-visuals/README.md).
-
-Planned placeholders:
-
-- `store-visuals/screenshot-01-popup.png`
-- `store-visuals/screenshot-02-warning-window.png`
-- `store-visuals/screenshot-03-settings.png`
-- `store-visuals/promo-tile-small-440x280.png`
-- `store-visuals/promo-marquee-1400x560.png`
-
-## Permissions
-
-The extension currently uses:
-
-- `tabs`
-- `storage`
-- `scripting`
-- `<all_urls>`
-
-These are used for tab counting, storing settings, and optionally injecting the warning border into the active page.
