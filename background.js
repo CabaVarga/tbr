@@ -144,6 +144,8 @@ async function updateVisuals() {
   await updateBadge(count, color);
   await syncBorderForActiveTab(color);
   await updateIcon(color);
+
+  return count;
 }
 
 // --- Warning popup (20+ tabs) ---
@@ -182,8 +184,7 @@ chrome.windows.onRemoved.addListener((windowId) => {
 // --- Event listeners ---
 
 chrome.tabs.onCreated.addListener(async (tab) => {
-  await updateVisuals();
-  const count = await getTabCount();
+  const count = await updateVisuals();
   if (count >= settings.dangerAt) {
     showWarning(tab.id);
   }
