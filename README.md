@@ -43,14 +43,14 @@ To load the extension locally:
 1. Open `chrome://extensions`
 2. Turn on Developer mode
 3. Click `Load unpacked`
-4. Select the repository root
+4. Select the repository `src/` directory
 5. Reload the extension after code changes
 
 ## Packaging For The Chrome Web Store
 
 There is no build step.
 
-When you are ready to submit a release, create a `.zip` from the extension files in the repo root:
+When you are ready to submit a release, create a `.zip` from the contents of `src/`:
 
 - `manifest.json`
 - `background.js`
@@ -63,7 +63,9 @@ When you are ready to submit a release, create a `.zip` from the extension files
 - `settings.js`
 - `icons/`
 
-Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, or `store-visuals/`.
+The archive root should contain those files directly. Do not upload a zip with a top-level `src/` folder.
+
+Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, `release/`, or `store-visuals/`.
 
 More publishing details live in [docs/publish.md](docs/publish.md).
 
