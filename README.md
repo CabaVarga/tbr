@@ -46,21 +46,24 @@ To load the extension locally:
 4. Select the repository root
 5. Reload the extension after code changes
 
-## Release Packaging
+## Packaging For The Chrome Web Store
 
-Build a store upload zip with:
+There is no build step.
 
-```bash
-./scripts/release.sh
-```
+When you are ready to submit a release, create a `.zip` from the extension files in the repo root:
 
-To bump the version and package in one step:
+- `manifest.json`
+- `background.js`
+- `popup.html`
+- `popup.js`
+- `popup.css`
+- `warning.html`
+- `warning.js`
+- `warning.css`
+- `settings.js`
+- `icons/`
 
-```bash
-./scripts/release.sh patch
-./scripts/release.sh minor
-./scripts/release.sh major
-```
+Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, or `store-visuals/`.
 
 More publishing details live in [docs/publish.md](docs/publish.md).
 

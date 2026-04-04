@@ -1,26 +1,12 @@
 # Publishing
 
-## Build A Release Zip
+## Build The Upload Zip
 
-Run the release helper from the repo root:
+There is no build step for this extension.
 
-```bash
-./scripts/release.sh
-```
+Before packaging, update the version in `manifest.json` if this is a new store release.
 
-That packages the extension with the current version in `manifest.json` and writes the upload artifact to `dist/tbr-<version>.zip`.
-
-To bump the manifest version and package in one step:
-
-```bash
-./scripts/release.sh patch
-./scripts/release.sh minor
-./scripts/release.sh major
-```
-
-## What Goes In The Upload Zip
-
-The release helper packages only the extension files required by the browser stores:
+Create the upload zip from the repo root using only the extension files:
 
 - `manifest.json`
 - `background.js`
@@ -33,15 +19,31 @@ The release helper packages only the extension files required by the browser sto
 - `settings.js`
 - `icons/`
 
-It does not package repository-only files such as `.git/`, `.claude/`, `.codex`, `CLAUDE.md`, `docs/`, `scripts/`, or `dist/`.
+## What Goes In The Upload Zip
+
+The upload archive should contain only the extension files required by the browser stores:
+
+- `manifest.json`
+- `background.js`
+- `popup.html`
+- `popup.js`
+- `popup.css`
+- `warning.html`
+- `warning.js`
+- `warning.css`
+- `settings.js`
+- `icons/`
+
+It must not include repository-only files such as `.git/`, `.claude/`, `.codex`, `CLAUDE.md`, `docs/`, `scripts/`, `dist/`, or `store-visuals/`.
 
 ## Chrome Web Store Checklist
 
-- Run `./scripts/release.sh` or `./scripts/release.sh patch` from the repo root.
+- Update `manifest.json` with the release version if needed.
+- Create the upload zip from the repo root using only the extension files listed above.
 - Load the repo as an unpacked extension in Chrome and verify the release candidate before upload.
 - Prepare listing metadata: title, short description, full description, category, and support contact.
 - Prepare listing assets in `store-visuals/`.
-- Upload `dist/tbr-<version>.zip` in the Chrome Web Store Developer Dashboard.
+- Upload the generated extension `.zip` in the Chrome Web Store Developer Dashboard.
 - Complete the Privacy tab accurately.
 - Set Distribution visibility and regions.
 - Submit for review.
@@ -81,8 +83,9 @@ Inference from the current permissions and behavior: plan to provide a privacy p
 
 ## Update Flow
 
-- Bump the version with `./scripts/release.sh patch`, `minor`, or `major`, or edit `manifest.json` first and then run `./scripts/release.sh`.
-- Upload the newly generated `dist/tbr-<version>.zip`.
+- Update the version in `manifest.json`.
+- Create a new upload zip from the extension files in the repo root.
+- Upload the newly generated extension `.zip`.
 - Update listing text or privacy answers if functionality or permissions changed.
 - Submit the updated package for review.
 
