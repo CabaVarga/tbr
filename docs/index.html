@@ -202,6 +202,12 @@
         font-size: 0.92rem;
       }
 
+      .visual-note {
+        margin: -2px 4px 0;
+        color: var(--soft);
+        font-size: 0.9rem;
+      }
+
       .visual {
         padding: 18px;
         display: grid;
@@ -415,7 +421,7 @@
                 </div>
                 <div class="note">
                   <strong>Warns in stages</strong>
-                  <span>Badge, border, icon, then the warning window.</span>
+                  <span>Badge is on by default; border and icon are optional.</span>
                 </div>
                 <div class="note">
                   <strong>Stays local</strong>
@@ -423,6 +429,10 @@
                 </div>
               </div>
             </div>
+            <p class="visual-note">
+              This site uses published copies of the canonical store visuals so
+              the public page stays stable even when the source assets change.
+            </p>
           </div>
 
           <div class="panel visual">
@@ -437,12 +447,20 @@
               <figure class="shot">
                 <img
                   src="assets/store-visuals/screenshot-01-popup.png"
+                  width="1280"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"
                   alt="Extension popup showing the current tab count and warning settings"
                 />
               </figure>
               <figure class="shot">
                 <img
                   src="assets/store-visuals/screenshot-03-settings.png"
+                  width="1280"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"
                   alt="Settings view for warning thresholds and visual alerts"
                 />
               </figure>
@@ -464,7 +482,7 @@
               </li>
               <li>
                 <strong>Visible warnings</strong>
-                <span class="copy">Badge, page border, and icon changes make the pressure obvious.</span>
+                <span class="copy">Badge is the default cue; page border and icon changes are optional.</span>
               </li>
               <li>
                 <strong>Dedicated interruption</strong>
@@ -499,6 +517,10 @@
         <figure class="marquee panel" aria-label="Promo marquee">
           <img
             src="assets/store-visuals/promo-marquee-1400x560.png"
+            width="1400"
+            height="560"
+            loading="lazy"
+            decoding="async"
             alt="Promotional banner for tbr showing the warning-first tab budget reminder concept"
           />
         </figure>
