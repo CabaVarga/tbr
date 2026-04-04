@@ -39,7 +39,7 @@ tbr uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, 
 - `src/` is the unpacked extension root.
 - `docs/` is the public GitHub Pages site.
 - `store-visuals/` contains tracked store-submission assets and the source renderer.
-- `asset-generation-pipeline/` contains local-only notes for the asset pipeline.
+- Local-only asset-pipeline notes may exist outside version control.
 
 ## Local Development
 
