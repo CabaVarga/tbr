@@ -43,16 +43,54 @@ body {
 #message.warn { color: #F59E0B; }
 #message.danger { color: #EF4444; }
 
-hr {
-  border: none;
-  border-top: 1px solid #333;
-  margin: 16px 0 12px;
+/* Settings toggle */
+
+#settings-toggle {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 11px;
+  color: #666;
+  cursor: pointer;
+  user-select: none;
 }
 
+#settings-toggle:hover {
+  color: #aaa;
+}
+
+#arrow {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+#settings-toggle.open #arrow {
+  transform: rotate(180deg);
+}
+
+/* Settings panel */
+
 #settings {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.25s ease;
+  max-height: 300px;
+  opacity: 1;
+}
+
+#settings.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+.group {
+  margin-top: 12px;
+}
+
+.group-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #555;
+  margin-bottom: 6px;
 }
 
 .setting label {
@@ -62,6 +100,7 @@ hr {
   cursor: pointer;
   font-size: 12px;
   color: #aaa;
+  padding: 2px 0;
 }
 
 .setting label:hover {
@@ -73,4 +112,32 @@ hr {
   width: 14px;
   height: 14px;
   cursor: pointer;
+}
+
+.limit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.limit label {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.limit input[type="number"] {
+  width: 52px;
+  padding: 3px 6px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #252540;
+  color: #e0e0e0;
+  font-size: 12px;
+  text-align: center;
+}
+
+.limit input[type="number"]:focus {
+  outline: none;
+  border-color: #6BCB77;
 }
