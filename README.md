@@ -1,73 +1,54 @@
-# tbr – Tab Budget Reminder
+# tbr - Tab Budget Reminder
 
-tbr is a Chrome extension that pushes back against tab hoarding with escalating warnings. It keeps the feedback local, blunt, and visible: you can see the current tab count, tune thresholds, and let the extension escalate from calm to warning to danger as your tab stack grows.
+![tbr promo banner](docs/assets/store-visuals/promo-marquee-1400x560.png)
 
-Public links:
+> You do not need another tab.
 
-- Landing page: https://cabavarga.github.io/tbr/
-- Privacy policy: https://cabavarga.github.io/tbr/privacy/
-- Support: https://github.com/CabaVarga/tbr/issues
+tbr is a Chrome extension for people who keep opening tabs long after the browser has started begging for mercy. It watches your tab count, warns you when things are getting out of hand, and gets more aggressive when you keep going anyway.
 
-## What It Does
+## 🔗 Quick Links
 
-- Tracks how many tabs you currently have open.
-- Shows the live tab count in the extension popup.
-- Escalates from warning to danger based on configurable thresholds.
-- Can highlight overload with badge color, page border, and dynamic icon color.
-- Opens a warning popup when you create a new tab while already over the danger threshold.
+- 🌐 Landing page: https://cabavarga.github.io/tbr/
+- 🔒 Privacy policy: https://cabavarga.github.io/tbr/privacy/
+- 🛟 Support / feedback: https://github.com/CabaVarga/tbr/issues
 
-## How You Use It
+## 👀 What It Does
 
-1. Install the extension.
-2. Click the toolbar icon to see your current tab count.
-3. Open the settings panel in the popup if you want to change the warning behavior.
-4. Set your own `Warning at` and `Danger at` thresholds.
-5. Enable or disable visual cues:
-   - badge color
-   - page border
-   - icon color
-6. Keep browsing until the extension starts pushing back.
+- Shows your live open-tab count in the popup
+- Escalates from calm to warning to danger as your tab count climbs
+- Lets you choose when warning mode and danger mode should start
+- Can signal overload with badge color, page border, and dynamic icon color
+- Opens a dedicated warning window when you create yet another tab past the danger threshold
 
-If you cross the danger threshold and open another tab, the extension opens a dedicated warning window. From there you can close the new tab or keep it.
+## 🚨 How It Pushes Back
 
-## Permissions
+By default, tbr warns at `10` tabs and treats `20` as danger territory. If you open a new tab while already over the danger threshold, it interrupts you with a blunt warning window and asks whether you really need it.
 
-tbr uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, save your settings, and optionally inject the warning border into the active HTTP or HTTPS page. There is no backend; the extension runs entirely in the browser.
+The goal is simple: make tab overload visible early enough that you stop pretending it is still under control.
 
-## Repo Context
+## 🎛️ What You Can Customize
 
-- `src/` is the unpacked extension root.
-- `docs/` is the public GitHub Pages site.
-- `store-visuals/` contains tracked store-submission assets and the source renderer.
-- Operator-specific publishing notes live in local-only, untracked files and are not part of the tracked repo.
+- `Warning at` threshold
+- `Danger at` threshold
+- Badge color warnings
+- Page border warnings on the active page
+- Dynamic toolbar icon color
 
-## Local Development
+## 🧠 Local-First By Design
 
-There is no build step.
+tbr runs entirely in your browser. It stores your warning settings locally and does not use a backend, send tab data to a server, or sell/share your data with third parties.
 
-To load the extension locally:
+It uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, save your settings, and optionally draw the warning border on the active HTTP or HTTPS page.
+
+## 🛠️ Tiny Dev Section
+
+No build step.
+
+To load it locally:
 
 1. Open `chrome://extensions`
-2. Turn on Developer mode
+2. Enable Developer mode
 3. Click `Load unpacked`
-4. Select the repository `src/` directory
-5. Reload the extension after code changes
+4. Select `src/`
 
-## Packaging For The Chrome Web Store
-
-Package the extension from the contents of `src/` with no top-level `src/` directory in the uploaded zip.
-
-The archive root should contain the extension files directly, such as:
-
-- `manifest.json`
-- `background.js`
-- `popup.html`
-- `popup.js`
-- `popup.css`
-- `warning.html`
-- `warning.js`
-- `warning.css`
-- `settings.js`
-- `icons/`
-
-Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, `dist/`, `release/`, or `store-visuals/`.
+That is the extension root.
