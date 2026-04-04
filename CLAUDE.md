@@ -11,24 +11,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 No build step. Load as an unpacked extension:
 
 1. Go to `chrome://extensions`, enable Developer Mode
-2. Click "Load unpacked", select this repo's root directory
+2. Click "Load unpacked", select this repo's `src/` directory
 3. After code changes, click the reload button on the extension card
 
 ## Architecture
 
+The runtime extension lives entirely under `src/`.
+
 ```
-background.js          Service worker — core logic
+src/manifest.json      MV3 manifest
+src/background.js      Service worker — core logic
   ├── Listens to tab events (onCreated, onRemoved, onReplaced)
   ├── Updates badge text (tab count) and badge color
-  └── Opens warning.html popup window at 20+ tabs
+  └── Opens src/warning.html popup window at 20+ tabs
 
-popup.html/js/css      Extension icon click — shows tab count + status
-warning.html/js/css    Annoying popup window — "close tab" or "keep tab"
-manifest.json          MV3 manifest, permissions: tabs
-icons/                 Simple PNG icons (16, 48, 128)
+src/popup.html/js/css   Extension icon click — shows tab count + status
+src/warning.html/js/css Annoying popup window — "close tab" or "keep tab"
+src/icons/              Simple PNG icons (16, 48, 128)
 ```
 
-## Key Thresholds (defined in both background.js and popup.js)
+## Key Thresholds (defined in both src/background.js and src/popup.js)
 
 - **< 10 tabs**: Green/default — all clear
 - **10–19 tabs**: Orange badge — warning
