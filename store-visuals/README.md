@@ -25,7 +25,14 @@ The visuals lead with personal distraction first, then escalate into a controlle
 
 ## Public Site Copies
 
-Selected copies are published from `docs/assets/store-visuals/` so the static site stays self-contained.
+The static site currently publishes these copies from `docs/assets/store-visuals/`:
+
+- `screenshot-01-popup.png`
+- `screenshot-02-warning-window.png`
+- `screenshot-03-settings.png`
+- `promo-marquee-1400x560.png`
+
+The remaining delivered assets stay in this folder only, so the public site stays self-contained without duplicating the full set.
 
 ## Regenerating
 

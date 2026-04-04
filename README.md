@@ -39,7 +39,7 @@ tbr uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, 
 - `src/` is the unpacked extension root.
 - `docs/` is the public GitHub Pages site.
 - `store-visuals/` contains tracked store-submission assets and the source renderer.
-- Local-only asset-pipeline notes may exist outside version control.
+- Operator-specific publishing notes live in local-only, untracked files and are not part of the tracked repo.
 
 ## Local Development
 
@@ -71,5 +71,3 @@ The archive root should contain the extension files directly, such as:
 - `icons/`
 
 Do not include repo-only paths such as `.git/`, `.claude/`, `.codex`, `docs/`, `scripts/`, `dist/`, `release/`, or `store-visuals/`.
-
-More publishing details live in [docs/publish.md](docs/publish.md).
