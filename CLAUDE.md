@@ -16,6 +16,8 @@ No build step. Load as an unpacked extension:
 
 ## Architecture
 
+The runtime extension lives entirely under `src/`.
+
 ```
 src/manifest.json      MV3 manifest
 src/background.js      Service worker — core logic
