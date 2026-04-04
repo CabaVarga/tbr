@@ -4,13 +4,13 @@
 
 > You do not need another tab.
 
-tbr is a Chrome extension for people who keep opening tabs long after the browser has started begging for mercy. It watches your tab count, warns you when things are getting out of hand, and gets more aggressive when you keep going anyway.
+tbr is a Chrome extension that keeps tab overload visible with escalating warnings, a live tab count, and a dedicated warning window. It pushes back at your thresholds before the tab pile gets worse.
 
 ## 🔗 Quick Links
 
 - 🌐 Landing page: https://cabavarga.github.io/tbr/
 - 🔒 Privacy policy: https://cabavarga.github.io/tbr/privacy/
-- 🛟 Support / feedback: https://github.com/CabaVarga/tbr/issues
+- 🛟 Support: https://github.com/CabaVarga/tbr/issues
 
 ## 👀 What It Does
 
