@@ -41,7 +41,26 @@ async function updateBadge(count, color) {
 // --- Page Border ---
 
 function borderCSS(color) {
-  return `html { border: 6px solid ${color} !important; }`;
+  const isRed = color === COLOR_DANGER;
+  const glow = isRed ? `box-shadow: inset 0 0 30px ${color}88, inset 0 0 60px ${color}44;` : `box-shadow: inset 0 0 20px ${color}66;`;
+  const anim = isRed
+    ? `animation: tbr-pulse 0.6s ease-in-out infinite alternate;`
+    : `animation: tbr-pulse 2s ease-in-out infinite alternate;`;
+  return `
+    @keyframes tbr-pulse {
+      from { opacity: 1; }
+      to { opacity: 0.4; }
+    }
+    html::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      border: 6px solid ${color};
+      ${glow}
+      ${anim}
+      pointer-events: none;
+      z-index: 2147483647;
+    }`;
 }
 
 async function injectableTabs() {
