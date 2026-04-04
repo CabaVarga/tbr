@@ -102,7 +102,7 @@ async function syncBorderForTab(tabId, color) {
 }
 
 async function syncBorderForActiveTab(color) {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   if (tab && isInjectable(tab.url)) {
     await syncBorderForTab(tab.id, color);
   }
