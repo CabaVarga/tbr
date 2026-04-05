@@ -167,65 +167,31 @@ const SCENES = {
     width: 440,
     height: 280,
     layout: "promo",
-    eyebrow: "Small promo tile",
+    eyebrow: "tbr",
     headline: "Your tabs need a budget.",
-    subtitle:
-      "A sharp productivity tool with enough attitude to make the limit stick.",
-    chips: [
-      { text: "warning thresholds", tone: "warn" },
-      { text: "interrupt new tabs", tone: "danger" }
-    ],
+    subtitle: "",
+    chips: [],
     detailCards: [],
-    tabs: ["Inbox", "Trip", "Read later", "+22 more"],
-    address: "https://mail.example.test/inbox",
-    borderMode: "danger-frame",
-    primaryCard: {
-      title: "Tab overload",
-      body: "Visible pressure before the browser gets absurd.",
-      lines: ["long", "medium", "short"]
-    },
-    secondaryCard: null,
-    device: {
-      type: "popup",
+    promo: {
       count: "27",
-      countTone: "danger",
-      message: "Way too many tabs!",
-      messageTone: "danger"
+      label: "tabs open",
+      message: "Way too many tabs!"
     }
   },
   marquee: {
     width: 1400,
     height: 560,
     layout: "marquee",
-    eyebrow: "Chrome Web Store marquee",
+    eyebrow: "tbr",
     headline: "Your tabs need a budget.",
     subtitle:
-      "Escalating warnings for people whose browser has been getting out of hand for far too long.",
-    chips: [
-      { text: "custom thresholds", tone: "warn" },
-      { text: "visual warnings", tone: "danger" }
-    ],
-    detailCards: [
-      { title: "Popup count", body: "The number goes from calm to warning to danger." },
-      { title: "Page border", body: "Optional visual pressure on the active page." },
-      { title: "Warning window", body: "A deliberate interruption when you push past the line." }
-    ],
-    tabs: ["Inbox", "Docs", "Read later", "Trip", "Issue 441", "+22 more"],
-    address: "https://docs.example.test/tab-budget",
-    borderMode: "danger-frame",
-    primaryCard: {
-      title: "Escalating signals",
-      body:
-        "Badge color, icon tint, page border, and the warning window combine into a single tab-control tool with a sharp voice.",
-      lines: ["long", "medium", "long", "short"]
-    },
-    secondaryCard: null,
-    device: {
-      type: "popup",
+      "Escalating warnings that make browser overload hard to ignore.",
+    chips: [],
+    detailCards: [],
+    promo: {
       count: "27",
-      countTone: "danger",
-      message: "Way too many tabs!",
-      messageTone: "danger"
+      label: "tabs open",
+      message: "Way too many tabs!"
     }
   }
 };
@@ -330,7 +296,102 @@ function renderDevice(device) {
   return renderPopupDevice(device);
 }
 
+function renderBrandMark() {
+  return `
+    <svg
+      class="brand-mark"
+      viewBox="0 0 128 128"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="brand-shield-blue" x1="30" y1="18" x2="95" y2="111" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#94DAFF"></stop>
+          <stop offset="1" stop-color="#447FD5"></stop>
+        </linearGradient>
+        <linearGradient id="brand-tab-orange" x1="64" y1="15" x2="108" y2="32" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#FFC860"></stop>
+          <stop offset="1" stop-color="#F08A1E"></stop>
+        </linearGradient>
+        <linearGradient id="brand-shoulder-highlight" x1="46" y1="30" x2="75" y2="48" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#F0FAFF" stop-opacity="0.9"></stop>
+          <stop offset="1" stop-color="#C3E7FF" stop-opacity="0.2"></stop>
+        </linearGradient>
+      </defs>
+
+      <path
+        d="M64 17C74.3 25.7 88.1 30 99 30V61C99 82.6 85.9 99.4 64 112C42.1 99.4 29 82.6 29 61V30C39.9 30 53.7 25.7 64 17Z"
+        fill="#E3493D"
+      ></path>
+      <path
+        d="M64 22.4C72.8 29.4 84.4 33 92.8 33V60.9C92.8 79.5 81.7 94.3 64 105C46.3 94.3 35.2 79.5 35.2 60.9V33C43.6 33 55.2 29.4 64 22.4Z"
+        fill="url(#brand-shield-blue)"
+      ></path>
+      <path
+        d="M44.4 35.6C53.6 33.9 60.7 29.5 64 26.9C68 29.8 74 33.4 82.1 35.1C80.8 39 77 41.8 72.7 41.8H53.4C49 41.8 45.5 39.2 44.4 35.6Z"
+        fill="url(#brand-shoulder-highlight)"
+      ></path>
+      <path
+        d="M64 16H100C104.4 16 108 19.6 108 24V32H71.3C67.3 32 64 28.7 64 24.7V16Z"
+        fill="url(#brand-tab-orange)"
+      ></path>
+    </svg>
+  `;
+}
+
+function renderPromoArt(scene) {
+  const supportMarkup = scene.promo.support
+    ? `<p class="promo-support">${scene.promo.support}</p>`
+    : "";
+
+  return `
+    <div class="promo-art">
+      <div class="promo-halo promo-halo-warn"></div>
+      <div class="promo-halo promo-halo-danger"></div>
+      <div class="promo-tabs-band">
+        <span>Inbox</span>
+        <span>Docs</span>
+        <span>Read later</span>
+        <span>Trip</span>
+        <span>+22</span>
+      </div>
+      <div class="promo-icon-wrap">
+        ${renderBrandMark()}
+      </div>
+      <div class="promo-count-card">
+        <div class="promo-count">${scene.promo.count}</div>
+        <div class="promo-count-label">${scene.promo.label}</div>
+        <div class="promo-count-message">${scene.promo.message}</div>
+      </div>
+      <div class="promo-mini-panel">
+        <div class="promo-mini-title">Escalating warnings</div>
+        <div class="promo-mini-line long"></div>
+        <div class="promo-mini-line medium"></div>
+        <div class="promo-mini-line short"></div>
+      </div>
+      ${supportMarkup}
+    </div>
+  `;
+}
+
 function renderScene(scene) {
+  if (scene.layout !== "screenshot") {
+    return `
+      <section class="scene layout-${scene.layout}">
+        <div class="hero-panel">
+          <div>
+            <div class="eyebrow">${scene.eyebrow}</div>
+            <h1 class="headline">${scene.headline}</h1>
+            ${scene.subtitle ? `<p class="subtitle">${scene.subtitle}</p>` : ""}
+          </div>
+        </div>
+        <div class="illustration-shell">
+          ${renderPromoArt(scene)}
+        </div>
+      </section>
+    `;
+  }
+
   const leftCard = `
     <div class="content-card">
       <h3>${scene.primaryCard.title}</h3>

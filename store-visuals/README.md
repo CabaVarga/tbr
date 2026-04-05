@@ -27,7 +27,7 @@ The visuals lead with personal distraction first, then escalate into a controlle
 
 The static site currently publishes these copies from `docs/assets/store-visuals/`:
 
-- `screenshot-01-popup.png`
+- `promo-tile-small-440x280.png`
 - `screenshot-02-warning-window.png`
 - `screenshot-03-settings.png`
 - `promo-marquee-1400x560.png`

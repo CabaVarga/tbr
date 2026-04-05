@@ -38,7 +38,7 @@ The goal is simple: make tab overload visible early enough that you stop pretend
 
 tbr runs entirely in your browser. It stores your warning settings locally and does not use a backend, send tab data to a server, or sell/share your data with third parties.
 
-It uses `tabs`, `storage`, `scripting`, and `<all_urls>` so it can count tabs, save your settings, and optionally draw the warning border on the active HTTP or HTTPS page.
+It uses `tabs`, `storage`, `scripting`, and host access for `http://*/*` and `https://*/*` so it can count tabs, save your settings, and optionally draw the warning border on the active HTTP or HTTPS page.
 
 ## 🛠️ Tiny Dev Section
 
