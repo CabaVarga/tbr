@@ -230,6 +230,10 @@ chrome.tabs.onActivated.addListener(() => {
   updateVisuals();
 });
 
+chrome.windows.onFocusChanged.addListener(() => {
+  updateVisuals();
+});
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete" && tab.active && isInjectable(tab.url)) {
     updateVisuals();
