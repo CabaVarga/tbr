@@ -94,15 +94,8 @@ async function removeBorderFromTab(tabId) {
   }
 }
 
-function getFocusedActiveTab(tabs, activeTabs) {
-  const focusedWindowId = activeTabs[0]?.windowId;
-  if (focusedWindowId == null) {
-    return null;
-  }
-
-  return (
-    tabs.find((tab) => tab.windowId === focusedWindowId && tab.active) ?? null
-  );
+function getFocusedActiveTab(activeTabs) {
+  return activeTabs[0] ?? null;
 }
 
 async function reconcileBorders(tabs, color) {
@@ -110,7 +103,7 @@ async function reconcileBorders(tabs, color) {
     active: true,
     lastFocusedWindow: true,
   });
-  const targetTab = getFocusedActiveTab(tabs, activeTabs);
+  const targetTab = getFocusedActiveTab(activeTabs);
   const targetTabId =
     settings.pageBorder && color && targetTab && isInjectable(targetTab.url)
       ? targetTab.id
