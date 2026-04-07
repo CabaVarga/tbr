@@ -30,6 +30,16 @@ function sortNumbers(values) {
   return [...values].sort((left, right) => left - right);
 }
 
+function createDeferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((nextResolve, nextReject) => {
+    resolve = nextResolve;
+    reject = nextReject;
+  });
+  return { promise, resolve, reject };
+}
+
 function makeTabs({
   focusedActiveTabId = 1,
   backgroundActiveTabId = 7,
@@ -96,6 +106,7 @@ function createChromeMock({
   tabs,
   focusedWindowId = 1,
   focusedActiveQueryResult = null,
+  storageGet = null,
 }) {
   const cssOps = [];
   let currentSettings = settings;
@@ -140,6 +151,9 @@ function createChromeMock({
       local: {
         async get(key) {
           assert.equal(key, "settings");
+          if (storageGet) {
+            return storageGet(key, currentSettings);
+          }
           return { settings: currentSettings };
         },
         async set() {},
@@ -219,6 +233,7 @@ function bootBackground(overrides = {}) {
       }),
     focusedWindowId: overrides.focusedWindowId || 1,
     focusedActiveQueryResult: overrides.focusedActiveQueryResult || null,
+    storageGet: overrides.storageGet || null,
   });
 
   const context = vm.createContext({
@@ -381,6 +396,44 @@ test("clears all borders when browser focus is lost", async () => {
   });
 });
 
+test("browser focus loss stays sticky across later active-tab completion updates", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 2,
+    backgroundActiveTabId: 8,
+    borderTabIds: [2],
+  });
+  const { chrome, cssOps } = bootBackground({
+    tabs,
+    focusedActiveQueryResult: [
+      {
+        id: 2,
+        windowId: 1,
+        active: true,
+        url: "https://example.com/2",
+      },
+    ],
+  });
+
+  await triggerFirstListener(
+    chrome.windows.onFocusChanged,
+    chrome.windows.WINDOW_ID_NONE
+  );
+  await triggerFirstListener(
+    chrome.tabs.onUpdated,
+    2,
+    {
+      status: "complete",
+    },
+    tabs[1]
+  );
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
+  });
+});
+
 test("onUpdated converges stale borders back to the focused active tab", async () => {
   const tabs = makeTabs({
     focusedActiveTabId: 5,
@@ -466,6 +519,62 @@ test("uses the direct focused-tab query result instead of the full-tab snapshot"
     tabs,
     focusedActiveQueryResult,
   });
+
+  await triggerFirstListener(chrome.tabs.onActivated, { tabId: 2, windowId: 1 });
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [2],
+  });
+});
+
+test("latest settings reload wins when storage reads resolve out of order", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 2,
+    backgroundActiveTabId: 8,
+  });
+  const storageReads = [];
+  const staleSettings = {
+    badge: true,
+    pageBorder: false,
+    dynamicIcon: false,
+    warnAt: 50,
+    dangerAt: 100,
+  };
+  const freshSettings = {
+    badge: true,
+    pageBorder: true,
+    dynamicIcon: false,
+    warnAt: 10,
+    dangerAt: 20,
+  };
+  const { chrome, cssOps } = bootBackground({
+    tabs,
+    storageGet(key) {
+      assert.equal(key, "settings");
+      const read = createDeferred();
+      storageReads.push(read);
+      return read.promise;
+    },
+  });
+
+  assert.equal(storageReads.length, 1);
+
+  const settingsChanged = triggerFirstListener(chrome.storage.onChanged, {
+    settings: {
+      oldValue: staleSettings,
+      newValue: freshSettings,
+    },
+  });
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(storageReads.length, 2);
+
+  storageReads[1].resolve({ settings: freshSettings });
+  await settingsChanged;
+
+  storageReads[0].resolve({ settings: staleSettings });
+  await new Promise((resolve) => setTimeout(resolve, 0));
 
   await triggerFirstListener(chrome.tabs.onActivated, { tabId: 2, windowId: 1 });
 

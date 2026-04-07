@@ -6,10 +6,19 @@ const COLOR_DANGER = "#EF4444";
 
 let settings = { ...DEFAULT_SETTINGS };
 const ALL_BORDER_COLORS = [COLOR_WARN, COLOR_DANGER];
+let browserFocusWindowId = null;
+let settingsReloadToken = 0;
 let settingsReady = reloadSettings();
 
 async function reloadSettings() {
-  settings = await loadSettings();
+  const reloadToken = ++settingsReloadToken;
+  const loadedSettings = await loadSettings();
+
+  if (reloadToken === settingsReloadToken) {
+    settings = loadedSettings;
+  }
+
+  return settings;
 }
 
 async function ensureSettingsLoaded() {
@@ -180,12 +189,18 @@ async function updateIcon(color) {
 async function updateVisuals(windowId = null) {
   await ensureSettingsLoaded();
 
+  if (windowId !== null) {
+    browserFocusWindowId = windowId;
+  }
+
   const tabs = await chrome.tabs.query({});
   const count = tabs.length;
   const color = getColor(count);
+  const reconcileWindowId =
+    windowId !== null ? windowId : browserFocusWindowId;
 
   await updateBadge(count, color);
-  await reconcileBorders(tabs, color, windowId);
+  await reconcileBorders(tabs, color, reconcileWindowId);
   await updateIcon(color);
 
   return count;
