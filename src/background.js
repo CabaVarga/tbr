@@ -6,9 +6,14 @@ const COLOR_DANGER = "#EF4444";
 
 let settings = { ...DEFAULT_SETTINGS };
 const ALL_BORDER_COLORS = [COLOR_WARN, COLOR_DANGER];
+let settingsReady = reloadSettings();
 
 async function reloadSettings() {
   settings = await loadSettings();
+}
+
+async function ensureSettingsLoaded() {
+  await settingsReady;
 }
 
 async function getTabCount() {
@@ -131,6 +136,8 @@ async function updateIcon(color) {
 // --- Main update ---
 
 async function updateVisuals() {
+  await ensureSettingsLoaded();
+
   const count = await getTabCount();
   const color = getColor(count);
 
@@ -203,18 +210,21 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.storage.onChanged.addListener(async (changes) => {
   if (changes.settings) {
-    await reloadSettings();
+    settingsReady = reloadSettings();
+    await settingsReady;
     await updateVisuals();
   }
 });
 
 // Initialize
 chrome.runtime.onInstalled.addListener(async () => {
-  await reloadSettings();
+  settingsReady = reloadSettings();
+  await settingsReady;
   await updateVisuals();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  await reloadSettings();
+  settingsReady = reloadSettings();
+  await settingsReady;
   await updateVisuals();
 });
