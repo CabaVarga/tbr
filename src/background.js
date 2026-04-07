@@ -6,6 +6,7 @@ const COLOR_DANGER = "#EF4444";
 
 let settings = { ...DEFAULT_SETTINGS };
 const ALL_BORDER_COLORS = [COLOR_WARN, COLOR_DANGER];
+// Ignore stale async settings reads so older wake-time loads cannot overwrite newer ones.
 let settingsReloadToken = 0;
 let settingsReady = reloadSettings();
 
@@ -19,6 +20,7 @@ async function reloadSettings() {
       settings = loadedSettings;
     }
   } catch (error) {
+    // Keep the last known settings so transient storage failures do not wedge updates.
     console.warn("Failed to reload settings", error);
   }
 
@@ -105,6 +107,14 @@ function getFocusedActiveTab(activeTabs) {
   return activeTabs[0] ?? null;
 }
 
+function getTargetBorderTabId(targetTab, color) {
+  if (!settings.pageBorder || !color || !targetTab || !isInjectable(targetTab.url)) {
+    return null;
+  }
+
+  return targetTab.id;
+}
+
 async function clearAllBorders(tabs) {
   for (const tab of tabs) {
     if (!isInjectable(tab.url)) {
@@ -146,10 +156,7 @@ async function reconcileBorders(tabs, color, windowId = null) {
     lastFocusedWindow: true,
   });
   const targetTab = getFocusedActiveTab(activeTabs);
-  const targetTabId =
-    settings.pageBorder && color && targetTab && isInjectable(targetTab.url)
-      ? targetTab.id
-      : null;
+  const targetTabId = getTargetBorderTabId(targetTab, color);
 
   for (const tab of tabs) {
     if (!isInjectable(tab.url)) {
@@ -204,6 +211,7 @@ async function updateIcon(color) {
 
 // --- Main update ---
 
+// Serialize reconciliation so older async work cannot repaint after newer state wins.
 let visualUpdateChain = Promise.resolve();
 
 async function runVisualUpdate(windowId = null) {
@@ -232,6 +240,7 @@ function updateVisuals(windowId = null) {
   return queuedUpdate;
 }
 
+// Startup, install, and settings changes all reload settings through the same path.
 async function refreshSettingsAndVisuals() {
   settingsReady = reloadSettings();
   await settingsReady;
