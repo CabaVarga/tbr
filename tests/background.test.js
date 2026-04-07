@@ -16,9 +16,79 @@ function createEvent() {
   };
 }
 
-function createChromeMock({ settings, allTabs, activeTab }) {
-  const insertCSSCalls = [];
-  const removeCSSCalls = [];
+function tab({
+  id,
+  windowId,
+  active = false,
+  url = `https://example.com/${id}`,
+  border = false,
+}) {
+  return { id, windowId, active, url, border };
+}
+
+function sortNumbers(values) {
+  return [...values].sort((left, right) => left - right);
+}
+
+function makeTabs({
+  focusedActiveTabId = 1,
+  backgroundActiveTabId = 7,
+  borderTabIds = [],
+  focusedWindowId = 1,
+  injectableFocusedTab = true,
+} = {}) {
+  return Array.from({ length: 12 }, (_, index) => {
+    const id = index + 1;
+    const windowId = id <= 6 ? 1 : 2;
+    const active = id === focusedActiveTabId || id === backgroundActiveTabId;
+    const isFocusedActiveTab = id === focusedActiveTabId;
+    const url =
+      isFocusedActiveTab && !injectableFocusedTab
+        ? "chrome://extensions"
+        : `https://example.com/${id}`;
+
+    return tab({
+      id,
+      windowId,
+      active,
+      url,
+      border: borderTabIds.includes(id),
+    });
+  }).map((currentTab) => ({
+    ...currentTab,
+    active: currentTab.windowId === focusedWindowId
+      ? currentTab.id === focusedActiveTabId
+      : currentTab.id === backgroundActiveTabId,
+  }));
+}
+
+function borderStateAfter(cssOps, initialTabs) {
+  const borderedTabs = new Map(
+    initialTabs
+      .filter((currentTab) => currentTab.border)
+      .map((currentTab) => [currentTab.id, currentTab.border])
+  );
+
+  for (const op of cssOps) {
+    if (op.method === "remove") {
+      borderedTabs.delete(op.target.tabId);
+    } else if (op.method === "insert") {
+      borderedTabs.set(op.target.tabId, true);
+    }
+  }
+
+  return sortNumbers([...borderedTabs.keys()]);
+}
+
+function assertBorderInvariant({ initialTabs, cssOps, expectedBorderedTabIds }) {
+  assert.deepEqual(
+    borderStateAfter(cssOps, initialTabs),
+    sortNumbers(expectedBorderedTabIds)
+  );
+}
+
+function createChromeMock({ settings, tabs, focusedWindowId = 1 }) {
+  const cssOps = [];
 
   const chrome = {
     action: {
@@ -35,10 +105,10 @@ function createChromeMock({ settings, allTabs, activeTab }) {
     },
     scripting: {
       async insertCSS(details) {
-        insertCSSCalls.push(details);
+        cssOps.push({ method: "insert", ...details });
       },
       async removeCSS(details) {
-        removeCSSCalls.push(details);
+        cssOps.push({ method: "remove", ...details });
       },
     },
     storage: {
@@ -59,9 +129,19 @@ function createChromeMock({ settings, allTabs, activeTab }) {
       onUpdated: createEvent(),
       async query(queryInfo) {
         if (queryInfo.active) {
-          return [activeTab];
+          return tabs.filter((currentTab) => {
+            if (!currentTab.active) {
+              return false;
+            }
+
+            if (queryInfo.lastFocusedWindow) {
+              return currentTab.windowId === focusedWindowId;
+            }
+
+            return true;
+          });
         }
-        return allTabs;
+        return tabs;
       },
     },
     windows: {
@@ -70,12 +150,12 @@ function createChromeMock({ settings, allTabs, activeTab }) {
         return { id: 123 };
       },
       async get() {
-        return { id: 123 };
+        return { id: focusedWindowId };
       },
     },
   };
 
-  return { chrome, insertCSSCalls, removeCSSCalls };
+  return { chrome, cssOps };
 }
 
 function bootBackground(overrides = {}) {
@@ -83,7 +163,7 @@ function bootBackground(overrides = {}) {
   const backgroundPath = process.env.TBR_BACKGROUND_PATH
     ? path.resolve(process.env.TBR_BACKGROUND_PATH)
     : path.join(repoRoot, "src", "background.js");
-  const { chrome, insertCSSCalls, removeCSSCalls } = createChromeMock({
+  const { chrome, cssOps } = createChromeMock({
     settings: {
       badge: true,
       pageBorder: true,
@@ -92,8 +172,13 @@ function bootBackground(overrides = {}) {
       dangerAt: 20,
       ...overrides.settings,
     },
-    allTabs: overrides.allTabs || Array.from({ length: 12 }, (_, id) => ({ id: id + 1 })),
-    activeTab: overrides.activeTab || { id: 1, url: "https://example.com", active: true },
+    tabs:
+      overrides.tabs ||
+      makeTabs({
+        focusedActiveTabId: 1,
+        backgroundActiveTabId: 7,
+      }),
+    focusedWindowId: overrides.focusedWindowId || 1,
   });
 
   const context = vm.createContext({
@@ -113,7 +198,7 @@ function bootBackground(overrides = {}) {
   const backgroundSource = fs.readFileSync(backgroundPath, "utf8");
   vm.runInContext(backgroundSource, context, { filename: path.basename(backgroundPath) });
 
-  return { chrome, insertCSSCalls, removeCSSCalls };
+  return { chrome, cssOps };
 }
 
 async function triggerFirstListener(event, ...args) {
@@ -124,10 +209,66 @@ async function triggerFirstListener(event, ...args) {
 }
 
 test("woken service worker reloads persisted settings before syncing active-tab border", async () => {
-  const { chrome, insertCSSCalls } = bootBackground();
+  const { chrome, cssOps } = bootBackground();
 
   await triggerFirstListener(chrome.tabs.onActivated, { tabId: 1, windowId: 1 });
 
-  assert.equal(insertCSSCalls.length, 1);
-  assert.match(insertCSSCalls[0].css, /border: 6px solid #F59E0B/);
+  const insertOps = cssOps.filter((op) => op.method === "insert");
+  assert.equal(insertOps.length, 1);
+  assert.match(insertOps[0].css, /border: 6px solid #F59E0B/);
+});
+
+test("reconciles stale borders across windows back to the focused active tab", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 2,
+    backgroundActiveTabId: 8,
+    borderTabIds: [9],
+  });
+  const { chrome, cssOps } = bootBackground({ tabs });
+
+  await triggerFirstListener(chrome.tabs.onActivated, { tabId: 2, windowId: 1 });
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [2],
+  });
+});
+
+test("clears stale borders when the page-border feature is off", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 3,
+    backgroundActiveTabId: 9,
+    borderTabIds: [3, 11],
+  });
+  const { chrome, cssOps } = bootBackground({
+    settings: { pageBorder: false },
+    tabs,
+  });
+
+  await triggerFirstListener(chrome.tabs.onActivated, { tabId: 3, windowId: 1 });
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
+  });
+});
+
+test("clears stale borders when the focused active tab is not injectable", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 4,
+    backgroundActiveTabId: 10,
+    borderTabIds: [11],
+    injectableFocusedTab: false,
+  });
+  const { chrome, cssOps } = bootBackground({ tabs });
+
+  await triggerFirstListener(chrome.tabs.onActivated, { tabId: 4, windowId: 1 });
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
+  });
 });
