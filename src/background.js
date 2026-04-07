@@ -205,7 +205,9 @@ async function updateIcon(color) {
 
 // --- Main update ---
 
-async function updateVisuals(windowId = null) {
+let visualUpdateChain = Promise.resolve();
+
+async function runVisualUpdate(windowId = null) {
   await ensureSettingsLoaded();
 
   const tabs = await chrome.tabs.query({});
@@ -218,6 +220,17 @@ async function updateVisuals(windowId = null) {
   await updateIcon(color);
 
   return count;
+}
+
+function updateVisuals(windowId = null) {
+  const queuedUpdate = visualUpdateChain.then(
+    () => runVisualUpdate(windowId),
+    () => runVisualUpdate(windowId)
+  );
+
+  visualUpdateChain = queuedUpdate.catch(() => {});
+
+  return queuedUpdate;
 }
 
 // --- Warning popup (20+ tabs) ---

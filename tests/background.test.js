@@ -108,6 +108,7 @@ function createChromeMock({
   browserFocused = true,
   focusedActiveQueryResult = null,
   storageGet = null,
+  beforeInsertCSS = null,
 }) {
   const cssOps = [];
   let currentSettings = settings;
@@ -138,6 +139,9 @@ function createChromeMock({
         const tab = getTab(details.target.tabId);
         if (!isInjectableUrl(tab.url)) {
           throw new Error(`Cannot inject CSS into ${tab.url}`);
+        }
+        if (beforeInsertCSS) {
+          await beforeInsertCSS(details, tab);
         }
         cssOps.push({ method: "insert", ...details });
       },
@@ -255,6 +259,7 @@ function bootBackground(overrides = {}) {
     browserFocused: overrides.browserFocused ?? true,
     focusedActiveQueryResult: overrides.focusedActiveQueryResult || null,
     storageGet: overrides.storageGet || null,
+    beforeInsertCSS: overrides.beforeInsertCSS || null,
   });
 
   const context = vm.createContext({
@@ -637,5 +642,76 @@ test("latest settings reload wins when storage reads resolve out of order", asyn
     initialTabs: tabs,
     cssOps,
     expectedBorderedTabIds: [2],
+  });
+});
+
+test("serializes visual updates so stale warning borders cannot overwrite newer settings clears", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 2,
+    backgroundActiveTabId: 8,
+  });
+  const firstInsertStarted = createDeferred();
+  const allowFirstInsert = createDeferred();
+  let blockedFirstInsert = false;
+  const { chrome, cssOps, setSettings } = bootBackground({
+    tabs,
+    beforeInsertCSS() {
+      if (!blockedFirstInsert) {
+        blockedFirstInsert = true;
+        firstInsertStarted.resolve();
+        return allowFirstInsert.promise;
+      }
+      return null;
+    },
+  });
+
+  const firstUpdate = chrome.tabs.onCreated.listeners[0](
+    tab({
+      id: 13,
+      windowId: 1,
+      active: false,
+      url: "https://example.com/13",
+    })
+  );
+
+  await firstInsertStarted.promise;
+
+  setSettings({
+    badge: true,
+    pageBorder: false,
+    dynamicIcon: false,
+    warnAt: 50,
+    dangerAt: 100,
+  });
+
+  const secondUpdate = chrome.storage.onChanged.listeners[0]({
+    settings: {
+      oldValue: {
+        badge: true,
+        pageBorder: true,
+        dynamicIcon: false,
+        warnAt: 10,
+        dangerAt: 20,
+      },
+      newValue: {
+        badge: true,
+        pageBorder: false,
+        dynamicIcon: false,
+        warnAt: 50,
+        dangerAt: 100,
+      },
+    },
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  allowFirstInsert.resolve();
+  await Promise.all([firstUpdate, secondUpdate]);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
   });
 });
