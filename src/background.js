@@ -235,7 +235,7 @@ chrome.windows.onFocusChanged.addListener(() => {
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.active && isInjectable(tab.url)) {
+  if (changeInfo.status === "complete" && tab.active) {
     updateVisuals();
   }
 });

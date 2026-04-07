@@ -369,6 +369,26 @@ test("onUpdated converges stale borders back to the focused active tab", async (
   });
 });
 
+test("onUpdated clears stale borders when the active tab completes on a non-injectable URL", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 4,
+    backgroundActiveTabId: 10,
+    borderTabIds: [10],
+    injectableFocusedTab: false,
+  });
+  const { chrome, cssOps } = bootBackground({ tabs });
+
+  await triggerFirstListener(chrome.tabs.onUpdated, 4, {
+    status: "complete",
+  }, tabs[3]);
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
+  });
+});
+
 test("onRemoved clears borders when tab count drops below the warning threshold", async () => {
   const tabs = Array.from({ length: 10 }, (_, index) =>
     tab({
