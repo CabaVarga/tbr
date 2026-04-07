@@ -87,9 +87,19 @@ function assertBorderInvariant({ initialTabs, cssOps, expectedBorderedTabIds }) 
   );
 }
 
+function isInjectableUrl(url) {
+  return url && /^https?:\/\//.test(url);
+}
+
 function createChromeMock({ settings, tabs, focusedWindowId = 1 }) {
   const cssOps = [];
   let currentSettings = settings;
+
+  function getTab(tabId) {
+    const tab = tabs.find((currentTab) => currentTab.id === tabId);
+    assert.ok(tab, `expected fixture tab ${tabId} to exist`);
+    return tab;
+  }
 
   const chrome = {
     action: {
@@ -106,9 +116,17 @@ function createChromeMock({ settings, tabs, focusedWindowId = 1 }) {
     },
     scripting: {
       async insertCSS(details) {
+        const tab = getTab(details.target.tabId);
+        if (!isInjectableUrl(tab.url)) {
+          throw new Error(`Cannot inject CSS into ${tab.url}`);
+        }
         cssOps.push({ method: "insert", ...details });
       },
       async removeCSS(details) {
+        const tab = getTab(details.target.tabId);
+        if (!isInjectableUrl(tab.url)) {
+          throw new Error(`Cannot inject CSS into ${tab.url}`);
+        }
         cssOps.push({ method: "remove", ...details });
       },
     },
