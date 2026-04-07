@@ -6,14 +6,29 @@ const COLOR_DANGER = "#EF4444";
 
 let settings = { ...DEFAULT_SETTINGS };
 const ALL_BORDER_COLORS = [COLOR_WARN, COLOR_DANGER];
+// Ignore stale async settings reads so older wake-time loads cannot overwrite newer ones.
+let settingsReloadToken = 0;
+let settingsReady = reloadSettings();
 
 async function reloadSettings() {
-  settings = await loadSettings();
+  const reloadToken = ++settingsReloadToken;
+
+  try {
+    const loadedSettings = await loadSettings();
+
+    if (reloadToken === settingsReloadToken) {
+      settings = loadedSettings;
+    }
+  } catch (error) {
+    // Keep the last known settings so transient storage failures do not wedge updates.
+    console.warn("Failed to reload settings", error);
+  }
+
+  return settings;
 }
 
-async function getTabCount() {
-  const tabs = await chrome.tabs.query({});
-  return tabs.length;
+async function ensureSettingsLoaded() {
+  await settingsReady;
 }
 
 function getColor(count) {
@@ -66,13 +81,7 @@ async function syncBorderForTab(tabId, color) {
   const targetColor = settings.pageBorder ? color : null;
 
   // Always remove all possible borders first (idempotent — survives service worker restarts)
-  for (const c of ALL_BORDER_COLORS) {
-    try {
-      await chrome.scripting.removeCSS({ target: { tabId }, css: borderCSS(c) });
-    } catch {
-      // Tab may not be injectable
-    }
-  }
+  await removeBorderFromTab(tabId);
 
   // Inject the correct border if needed
   if (targetColor) {
@@ -84,10 +93,82 @@ async function syncBorderForTab(tabId, color) {
   }
 }
 
-async function syncBorderForActiveTab(color) {
-  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  if (tab && isInjectable(tab.url)) {
-    await syncBorderForTab(tab.id, color);
+async function removeBorderFromTab(tabId) {
+  for (const c of ALL_BORDER_COLORS) {
+    try {
+      await chrome.scripting.removeCSS({ target: { tabId }, css: borderCSS(c) });
+    } catch {
+      // Tab may not be injectable
+    }
+  }
+}
+
+function getFocusedActiveTab(activeTabs) {
+  return activeTabs[0] ?? null;
+}
+
+function getTargetBorderTabId(targetTab, color) {
+  if (!settings.pageBorder || !color || !targetTab || !isInjectable(targetTab.url)) {
+    return null;
+  }
+
+  return targetTab.id;
+}
+
+async function clearAllBorders(tabs) {
+  for (const tab of tabs) {
+    if (!isInjectable(tab.url)) {
+      continue;
+    }
+
+    await removeBorderFromTab(tab.id);
+  }
+}
+
+async function getReconcileWindowId(windowId = null) {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    return chrome.windows.WINDOW_ID_NONE;
+  }
+
+  let lastFocusedWindow = null;
+
+  try {
+    lastFocusedWindow = await chrome.windows.getLastFocused();
+  } catch {
+    return chrome.windows.WINDOW_ID_NONE;
+  }
+
+  if (!lastFocusedWindow || !lastFocusedWindow.focused) {
+    return chrome.windows.WINDOW_ID_NONE;
+  }
+
+  return lastFocusedWindow.id;
+}
+
+async function reconcileBorders(tabs, color, windowId = null) {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    await clearAllBorders(tabs);
+    return;
+  }
+
+  const activeTabs = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  const targetTab = getFocusedActiveTab(activeTabs);
+  const targetTabId = getTargetBorderTabId(targetTab, color);
+
+  for (const tab of tabs) {
+    if (!isInjectable(tab.url)) {
+      continue;
+    }
+
+    if (tab.id === targetTabId) {
+      await syncBorderForTab(tab.id, color);
+      continue;
+    }
+
+    await removeBorderFromTab(tab.id);
   }
 }
 
@@ -130,15 +211,40 @@ async function updateIcon(color) {
 
 // --- Main update ---
 
-async function updateVisuals() {
-  const count = await getTabCount();
+// Serialize reconciliation so older async work cannot repaint after newer state wins.
+let visualUpdateChain = Promise.resolve();
+
+async function runVisualUpdate(windowId = null) {
+  await ensureSettingsLoaded();
+
+  const tabs = await chrome.tabs.query({});
+  const count = tabs.length;
   const color = getColor(count);
+  const reconcileWindowId = await getReconcileWindowId(windowId);
 
   await updateBadge(count, color);
-  await syncBorderForActiveTab(color);
+  await reconcileBorders(tabs, color, reconcileWindowId);
   await updateIcon(color);
 
   return count;
+}
+
+function updateVisuals(windowId = null) {
+  const queuedUpdate = visualUpdateChain.then(
+    () => runVisualUpdate(windowId),
+    () => runVisualUpdate(windowId)
+  );
+
+  visualUpdateChain = queuedUpdate.catch(() => {});
+
+  return queuedUpdate;
+}
+
+// Startup, install, and settings changes all reload settings through the same path.
+async function refreshSettingsAndVisuals() {
+  settingsReady = reloadSettings();
+  await settingsReady;
+  await updateVisuals();
 }
 
 // --- Warning popup (20+ tabs) ---
@@ -195,26 +301,27 @@ chrome.tabs.onActivated.addListener(() => {
   updateVisuals();
 });
 
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  updateVisuals(windowId);
+});
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.active && isInjectable(tab.url)) {
+  if (changeInfo.status === "complete" && tab.active) {
     updateVisuals();
   }
 });
 
 chrome.storage.onChanged.addListener(async (changes) => {
   if (changes.settings) {
-    await reloadSettings();
-    await updateVisuals();
+    await refreshSettingsAndVisuals();
   }
 });
 
 // Initialize
 chrome.runtime.onInstalled.addListener(async () => {
-  await reloadSettings();
-  await updateVisuals();
+  await refreshSettingsAndVisuals();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  await reloadSettings();
-  await updateVisuals();
+  await refreshSettingsAndVisuals();
 });
