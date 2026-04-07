@@ -6,7 +6,6 @@ const COLOR_DANGER = "#EF4444";
 
 let settings = { ...DEFAULT_SETTINGS };
 const ALL_BORDER_COLORS = [COLOR_WARN, COLOR_DANGER];
-let browserFocusWindowId = null;
 let settingsReloadToken = 0;
 let settingsReady = reloadSettings();
 
@@ -117,6 +116,26 @@ async function clearAllBorders(tabs) {
   }
 }
 
+async function getReconcileWindowId(windowId = null) {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    return chrome.windows.WINDOW_ID_NONE;
+  }
+
+  let lastFocusedWindow = null;
+
+  try {
+    lastFocusedWindow = await chrome.windows.getLastFocused();
+  } catch {
+    return chrome.windows.WINDOW_ID_NONE;
+  }
+
+  if (!lastFocusedWindow || !lastFocusedWindow.focused) {
+    return chrome.windows.WINDOW_ID_NONE;
+  }
+
+  return lastFocusedWindow.id;
+}
+
 async function reconcileBorders(tabs, color, windowId = null) {
   if (windowId === chrome.windows.WINDOW_ID_NONE) {
     await clearAllBorders(tabs);
@@ -189,15 +208,10 @@ async function updateIcon(color) {
 async function updateVisuals(windowId = null) {
   await ensureSettingsLoaded();
 
-  if (windowId !== null) {
-    browserFocusWindowId = windowId;
-  }
-
   const tabs = await chrome.tabs.query({});
   const count = tabs.length;
   const color = getColor(count);
-  const reconcileWindowId =
-    windowId !== null ? windowId : browserFocusWindowId;
+  const reconcileWindowId = await getReconcileWindowId(windowId);
 
   await updateBadge(count, color);
   await reconcileBorders(tabs, color, reconcileWindowId);

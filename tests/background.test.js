@@ -105,12 +105,14 @@ function createChromeMock({
   settings,
   tabs,
   focusedWindowId = 1,
+  browserFocused = true,
   focusedActiveQueryResult = null,
   storageGet = null,
 }) {
   const cssOps = [];
   let currentSettings = settings;
   let currentFocusedWindowId = focusedWindowId;
+  let currentBrowserFocused = browserFocused;
 
   function getTab(tabId) {
     const tab = tabs.find((currentTab) => currentTab.id === tabId);
@@ -193,8 +195,17 @@ function createChromeMock({
       async create() {
         return { id: 123 };
       },
+      async getLastFocused() {
+        return {
+          id: currentFocusedWindowId,
+          focused: currentBrowserFocused,
+        };
+      },
       async get() {
-        return { id: currentFocusedWindowId };
+        return {
+          id: currentFocusedWindowId,
+          focused: currentBrowserFocused,
+        };
       },
     },
   };
@@ -202,6 +213,9 @@ function createChromeMock({
   return {
     chrome,
     cssOps,
+    setBrowserFocused(nextBrowserFocused) {
+      currentBrowserFocused = nextBrowserFocused;
+    },
     setFocusedWindowId(nextFocusedWindowId) {
       currentFocusedWindowId = nextFocusedWindowId;
     },
@@ -216,7 +230,13 @@ function bootBackground(overrides = {}) {
   const backgroundPath = process.env.TBR_BACKGROUND_PATH
     ? path.resolve(process.env.TBR_BACKGROUND_PATH)
     : path.join(repoRoot, "src", "background.js");
-  const { chrome, cssOps, setSettings, setFocusedWindowId } = createChromeMock({
+  const {
+    chrome,
+    cssOps,
+    setBrowserFocused,
+    setSettings,
+    setFocusedWindowId,
+  } = createChromeMock({
     settings: {
       badge: true,
       pageBorder: true,
@@ -232,6 +252,7 @@ function bootBackground(overrides = {}) {
         backgroundActiveTabId: 7,
       }),
     focusedWindowId: overrides.focusedWindowId || 1,
+    browserFocused: overrides.browserFocused ?? true,
     focusedActiveQueryResult: overrides.focusedActiveQueryResult || null,
     storageGet: overrides.storageGet || null,
   });
@@ -253,7 +274,13 @@ function bootBackground(overrides = {}) {
   const backgroundSource = fs.readFileSync(backgroundPath, "utf8");
   vm.runInContext(backgroundSource, context, { filename: path.basename(backgroundPath) });
 
-  return { chrome, cssOps, setSettings, setFocusedWindowId };
+  return {
+    chrome,
+    cssOps,
+    setBrowserFocused,
+    setSettings,
+    setFocusedWindowId,
+  };
 }
 
 async function triggerFirstListener(event, ...args) {
@@ -404,6 +431,7 @@ test("browser focus loss stays sticky across later active-tab completion updates
   });
   const { chrome, cssOps } = bootBackground({
     tabs,
+    browserFocused: false,
     focusedActiveQueryResult: [
       {
         id: 2,
@@ -418,6 +446,33 @@ test("browser focus loss stays sticky across later active-tab completion updates
     chrome.windows.onFocusChanged,
     chrome.windows.WINDOW_ID_NONE
   );
+  await triggerFirstListener(
+    chrome.tabs.onUpdated,
+    2,
+    {
+      status: "complete",
+    },
+    tabs[1]
+  );
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
+  });
+});
+
+test("worker restart while Chrome stays unfocused does not reinsert a border on tab updates", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 2,
+    backgroundActiveTabId: 8,
+    borderTabIds: [2],
+  });
+  const { chrome, cssOps } = bootBackground({
+    tabs,
+    browserFocused: false,
+  });
+
   await triggerFirstListener(
     chrome.tabs.onUpdated,
     2,
