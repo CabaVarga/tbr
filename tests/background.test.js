@@ -89,6 +89,7 @@ function assertBorderInvariant({ initialTabs, cssOps, expectedBorderedTabIds }) 
 
 function createChromeMock({ settings, tabs, focusedWindowId = 1 }) {
   const cssOps = [];
+  let currentSettings = settings;
 
   const chrome = {
     action: {
@@ -115,7 +116,7 @@ function createChromeMock({ settings, tabs, focusedWindowId = 1 }) {
       local: {
         async get(key) {
           assert.equal(key, "settings");
-          return { settings };
+          return { settings: currentSettings };
         },
         async set() {},
       },
@@ -155,7 +156,13 @@ function createChromeMock({ settings, tabs, focusedWindowId = 1 }) {
     },
   };
 
-  return { chrome, cssOps };
+  return {
+    chrome,
+    cssOps,
+    setSettings(nextSettings) {
+      currentSettings = nextSettings;
+    },
+  };
 }
 
 function bootBackground(overrides = {}) {
@@ -163,7 +170,7 @@ function bootBackground(overrides = {}) {
   const backgroundPath = process.env.TBR_BACKGROUND_PATH
     ? path.resolve(process.env.TBR_BACKGROUND_PATH)
     : path.join(repoRoot, "src", "background.js");
-  const { chrome, cssOps } = createChromeMock({
+  const { chrome, cssOps, setSettings } = createChromeMock({
     settings: {
       badge: true,
       pageBorder: true,
@@ -198,7 +205,7 @@ function bootBackground(overrides = {}) {
   const backgroundSource = fs.readFileSync(backgroundPath, "utf8");
   vm.runInContext(backgroundSource, context, { filename: path.basename(backgroundPath) });
 
-  return { chrome, cssOps };
+  return { chrome, cssOps, setSettings };
 }
 
 async function triggerFirstListener(event, ...args) {
@@ -241,12 +248,21 @@ test("clears stale borders when the page-border feature is off", async () => {
     backgroundActiveTabId: 9,
     borderTabIds: [3, 11],
   });
-  const { chrome, cssOps } = bootBackground({
-    settings: { pageBorder: false },
-    tabs,
-  });
+  const { chrome, cssOps, setSettings } = bootBackground({ tabs });
 
-  await triggerFirstListener(chrome.tabs.onActivated, { tabId: 3, windowId: 1 });
+  setSettings({
+    badge: true,
+    pageBorder: false,
+    dynamicIcon: false,
+    warnAt: 10,
+    dangerAt: 20,
+  });
+  await triggerFirstListener(chrome.storage.onChanged, {
+    settings: {
+      oldValue: { pageBorder: true },
+      newValue: { pageBorder: false },
+    },
+  });
 
   assertBorderInvariant({
     initialTabs: tabs,
