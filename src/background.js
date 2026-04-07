@@ -11,10 +11,15 @@ let settingsReady = reloadSettings();
 
 async function reloadSettings() {
   const reloadToken = ++settingsReloadToken;
-  const loadedSettings = await loadSettings();
 
-  if (reloadToken === settingsReloadToken) {
-    settings = loadedSettings;
+  try {
+    const loadedSettings = await loadSettings();
+
+    if (reloadToken === settingsReloadToken) {
+      settings = loadedSettings;
+    }
+  } catch (error) {
+    console.warn("Failed to reload settings", error);
   }
 
   return settings;
@@ -74,13 +79,7 @@ async function syncBorderForTab(tabId, color) {
   const targetColor = settings.pageBorder ? color : null;
 
   // Always remove all possible borders first (idempotent — survives service worker restarts)
-  for (const c of ALL_BORDER_COLORS) {
-    try {
-      await chrome.scripting.removeCSS({ target: { tabId }, css: borderCSS(c) });
-    } catch {
-      // Tab may not be injectable
-    }
-  }
+  await removeBorderFromTab(tabId);
 
   // Inject the correct border if needed
   if (targetColor) {
@@ -233,6 +232,12 @@ function updateVisuals(windowId = null) {
   return queuedUpdate;
 }
 
+async function refreshSettingsAndVisuals() {
+  settingsReady = reloadSettings();
+  await settingsReady;
+  await updateVisuals();
+}
+
 // --- Warning popup (20+ tabs) ---
 
 let warningWindowId = null;
@@ -299,21 +304,15 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.storage.onChanged.addListener(async (changes) => {
   if (changes.settings) {
-    settingsReady = reloadSettings();
-    await settingsReady;
-    await updateVisuals();
+    await refreshSettingsAndVisuals();
   }
 });
 
 // Initialize
 chrome.runtime.onInstalled.addListener(async () => {
-  settingsReady = reloadSettings();
-  await settingsReady;
-  await updateVisuals();
+  await refreshSettingsAndVisuals();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  settingsReady = reloadSettings();
-  await settingsReady;
-  await updateVisuals();
+  await refreshSettingsAndVisuals();
 });

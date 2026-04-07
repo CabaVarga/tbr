@@ -234,6 +234,7 @@ function bootBackground(overrides = {}) {
   const backgroundPath = process.env.TBR_BACKGROUND_PATH
     ? path.resolve(process.env.TBR_BACKGROUND_PATH)
     : path.join(repoRoot, "src", "background.js");
+  const contextConsole = overrides.console || console;
   const {
     chrome,
     cssOps,
@@ -264,7 +265,7 @@ function bootBackground(overrides = {}) {
 
   const context = vm.createContext({
     chrome,
-    console,
+    console: contextConsole,
     setTimeout,
     clearTimeout,
   });
@@ -310,6 +311,32 @@ test("woken service worker reloads persisted settings before syncing active-tab 
   const insertOps = cssOps.filter((op) => op.method === "insert");
   assert.equal(insertOps.length, 1);
   assert.match(insertOps[0].css, /border: 6px solid #F59E0B/);
+});
+
+test("falls back to in-memory settings when a settings reload fails", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 2,
+    backgroundActiveTabId: 8,
+    borderTabIds: [2],
+  });
+  const { chrome, cssOps } = bootBackground({
+    tabs,
+    console: {
+      ...console,
+      warn() {},
+    },
+    storageGet() {
+      throw new Error("storage unavailable");
+    },
+  });
+
+  await triggerFirstListener(chrome.tabs.onActivated, { tabId: 2, windowId: 1 });
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
+  });
 });
 
 test("reconciles stale borders across windows back to the focused active tab", async () => {
