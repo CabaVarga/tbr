@@ -16,11 +16,6 @@ async function ensureSettingsLoaded() {
   await settingsReady;
 }
 
-async function getTabCount() {
-  const tabs = await chrome.tabs.query({});
-  return tabs.length;
-}
-
 function getColor(count) {
   if (count >= settings.dangerAt) return COLOR_DANGER;
   if (count >= settings.warnAt) return COLOR_WARN;
@@ -89,10 +84,49 @@ async function syncBorderForTab(tabId, color) {
   }
 }
 
-async function syncBorderForActiveTab(color) {
-  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  if (tab && isInjectable(tab.url)) {
-    await syncBorderForTab(tab.id, color);
+async function removeBorderFromTab(tabId) {
+  for (const c of ALL_BORDER_COLORS) {
+    try {
+      await chrome.scripting.removeCSS({ target: { tabId }, css: borderCSS(c) });
+    } catch {
+      // Tab may not be injectable
+    }
+  }
+}
+
+function getFocusedActiveTab(tabs, activeTabs) {
+  const focusedWindowId = activeTabs[0]?.windowId;
+  if (focusedWindowId == null) {
+    return null;
+  }
+
+  return (
+    tabs.find((tab) => tab.windowId === focusedWindowId && tab.active) ?? null
+  );
+}
+
+async function reconcileBorders(tabs, color) {
+  const activeTabs = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  const targetTab = getFocusedActiveTab(tabs, activeTabs);
+  const targetTabId =
+    settings.pageBorder && color && targetTab && isInjectable(targetTab.url)
+      ? targetTab.id
+      : null;
+
+  for (const tab of tabs) {
+    if (!isInjectable(tab.url)) {
+      continue;
+    }
+
+    if (tab.id === targetTabId) {
+      await syncBorderForTab(tab.id, color);
+      continue;
+    }
+
+    await removeBorderFromTab(tab.id);
   }
 }
 
@@ -138,11 +172,12 @@ async function updateIcon(color) {
 async function updateVisuals() {
   await ensureSettingsLoaded();
 
-  const count = await getTabCount();
+  const tabs = await chrome.tabs.query({});
+  const count = tabs.length;
   const color = getColor(count);
 
   await updateBadge(count, color);
-  await syncBorderForActiveTab(color);
+  await reconcileBorders(tabs, color);
   await updateIcon(color);
 
   return count;
