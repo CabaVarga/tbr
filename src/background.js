@@ -98,7 +98,22 @@ function getFocusedActiveTab(activeTabs) {
   return activeTabs[0] ?? null;
 }
 
-async function reconcileBorders(tabs, color) {
+async function clearAllBorders(tabs) {
+  for (const tab of tabs) {
+    if (!isInjectable(tab.url)) {
+      continue;
+    }
+
+    await removeBorderFromTab(tab.id);
+  }
+}
+
+async function reconcileBorders(tabs, color, windowId = null) {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    await clearAllBorders(tabs);
+    return;
+  }
+
   const activeTabs = await chrome.tabs.query({
     active: true,
     lastFocusedWindow: true,
@@ -162,7 +177,7 @@ async function updateIcon(color) {
 
 // --- Main update ---
 
-async function updateVisuals() {
+async function updateVisuals(windowId = null) {
   await ensureSettingsLoaded();
 
   const tabs = await chrome.tabs.query({});
@@ -170,7 +185,7 @@ async function updateVisuals() {
   const color = getColor(count);
 
   await updateBadge(count, color);
-  await reconcileBorders(tabs, color);
+  await reconcileBorders(tabs, color, windowId);
   await updateIcon(color);
 
   return count;
@@ -230,8 +245,8 @@ chrome.tabs.onActivated.addListener(() => {
   updateVisuals();
 });
 
-chrome.windows.onFocusChanged.addListener(() => {
-  updateVisuals();
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  updateVisuals(windowId);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

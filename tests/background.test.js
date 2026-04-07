@@ -173,6 +173,7 @@ function createChromeMock({
       },
     },
     windows: {
+      WINDOW_ID_NONE: -1,
       onFocusChanged: createEvent(),
       onRemoved: createEvent(),
       async create() {
@@ -347,6 +348,36 @@ test("reconciles borders when browser window focus changes", async () => {
     initialTabs: tabs,
     cssOps,
     expectedBorderedTabIds: [8],
+  });
+});
+
+test("clears all borders when browser focus is lost", async () => {
+  const tabs = makeTabs({
+    focusedActiveTabId: 2,
+    backgroundActiveTabId: 8,
+    borderTabIds: [2, 8],
+  });
+  const { chrome, cssOps } = bootBackground({
+    tabs,
+    focusedActiveQueryResult: [
+      {
+        id: 2,
+        windowId: 1,
+        active: true,
+        url: "https://example.com/2",
+      },
+    ],
+  });
+
+  await triggerFirstListener(
+    chrome.windows.onFocusChanged,
+    chrome.windows.WINDOW_ID_NONE
+  );
+
+  assertBorderInvariant({
+    initialTabs: tabs,
+    cssOps,
+    expectedBorderedTabIds: [],
   });
 });
 
